@@ -1,0 +1,25 @@
+How to use xrowvideo:
+
+1. Add the extension. Activate it in site.ini. You need the ezjscore extension.
+
+2. Add this datatype to your favorite class.
+
+3. Make sure that the user who will work with this datatype have policy to ezjscore call
+
+4. Install the cronjob:
+# php runcronjobs.php -s admin convertmedia
+
+The cronjob should run very often, the uploaded videos are only visible after the cronjob has run. 
+
+=============
+
+Convert ezbinary to xrowvideo:
+
+
+update ezcontentclass_attribute set data_type_string = 'xrowvideo' where id = x and version = 0;
+update ezcontentobject_attribute set data_type_string = 'xrowvideo' where contenclassattribute_id = x;
+
+convert all videos:
+# php bin/php/ezexec.php extension/xrowvideo/bin/convert_all_videos.php
+
+Start the cronjob aftwareds

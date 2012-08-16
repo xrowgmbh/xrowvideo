@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<software>
+    <metadata>
+        <name>xrow Video Extension</name>
+        <version>1.0</version>
+        <copyright>Copyright (C) 2012 xrow GmbH</copyright>
+        <author>Georg Franz</author>
+        <license>GPL License</license>
+        <info_url>https://xrow.com</info_url>
+
+        <software>
+            <uses>
+                <name>jQuery</name>
+                <license>Dual licensed under the MIT and GPL licenses</license>
+                <copyright>Copyright (c) 2011 John Resig</copyright>
+                <info_url>http://jquery.com/</info_url>
+                <version>1.6.4</version>
+            </uses>
+            <uses>
+                <name>jQuery UI</name>
+                <license>Dual licensed under the MIT and GPL licenses</license>
+                <copyright>Copyright (c) 2011 jQuery project / jQuery UI team</copyright>
+                <info_url>http://jqueryui.com/about</info_url>
+                <version>1.8.16</version>
+            </uses>
+            <uses>
+                <name>Plupload - Cross browser and platform uploader API</name>
+                <license>GPLv2</license>
+                <copyright>Moxiecode Systems AB http://www.plupload.com/license.php#license</copyright>
+                <info_url>http://www.plupload.com</info_url>
+                <version>1.</version>
+
+            </uses>
+            <uses>
+                <name>Video.js</name>
+                <copyright>Steve Heffernan and Zencoder Inc.</copyright>
+                <info_url>http://videojs.com/</info_url>
+            </uses>
+        </software>
+
+    </metadata>
+
+    <dependencies>
+        <requires>
+            <extension name="ezjscore" />
+        </requires>
+    </dependencies>
+
+</software>
