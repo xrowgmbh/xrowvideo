@@ -1,0 +1,4 @@
+<?php /*
+
+[EditSettings]
+GroupedInput[]=xrowvideo
