@@ -40,6 +40,7 @@ class xrowMedia
 
     public function getXMLData( $root )
     {
+        #eZDebug::writeDebug( $root, 'root' );
         $result = array();
         if ( isset( $this->xml->$root ) )
         {
@@ -52,16 +53,45 @@ class xrowMedia
                 $i = 0;
                 # get children which are not the original and have a good status
                 $nArray =  $this->xml->$root->xpath( "//source[@show=1 and @status = " . self::STATUS_CONVERSION_FINISHED . "]" );
+                $tmp = array();
                 foreach ( $nArray as $key => $item )
                 {
                     foreach ( $item->attributes() as $akey => $aitem )
                     {
-                        $result['source'][$i][$akey] = (string) $aitem;
+                        $tmp['source'][$i][$akey] = (string) $aitem;
                     }
                     $i++;
                 }
+                # sort the src
+                $xini = eZINI::instance( 'xrowvideo.ini' );
+                if ( $root == 'video' )
+                {
+                    $exArray = $xini->variable( 'xrowVideoSettings', 'ConvertVideoFiles' );
+                }
+                else
+                {
+                    $exArray = $xini->variable( 'xrowVideoSettings', 'ConvertAudioFiles' );
+                }
+
+                foreach( $exArray as $ext )
+                {
+                    if ( $xini->hasVariable( $ext, 'MimeType' ) )
+                    {
+                        $mType = $xini->variable( $ext, 'MimeType' );
+                        foreach ( $tmp['source'] as $skey => $src )
+                        {
+                            if ( $src['mimetype'] == $mType )
+                            {
+                                $result['source'][] = $src;
+                                unset( $tmp['source'][$skey] );
+                                break;
+                            }
+                        }
+                    }
+                }
             }
         }
+        #eZDebug::writeDebug( $result, __METHOD__ );
         return $result;
     }
 
