@@ -18,10 +18,9 @@ VideoExtensions[]=wav
 Language=en
 
 ConvertVideoFiles[]
-ConvertVideoFiles[]=ogv
 ConvertVideoFiles[]=mp4
-ConvertVideoFiles[]=flv
 ConvertVideoFiles[]=webm
+ConvertVideoFiles[]=flv
 
 ConvertAudioFiles[]
 ConvertAudioFiles[]=mp3
