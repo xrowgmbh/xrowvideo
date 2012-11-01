@@ -25,7 +25,7 @@
 
 {/run-once}
 
-<{$media_tag} id="xrow_media_{$attribute.id}"{if $media_tag|eq( 'video' )} class="video-js vjs-default-skin"{/if} {cond( $attribute.content.settings.controls, ' controls="controls"', '' )}{cond( $attribute.content.settings.autoplay, ' autoplay', '' )}{cond( $attribute.content.settings.loop, ' loop', '' )} preload="auto" {if $media_tag|eq( 'video' )}{cond(  $attribute.content.settings.width, concat( 'width="', $attribute.content.settings.width, '"' ), concat( 'width="', $attribute.content.video.width, '"' ) )} {cond( $attribute.content.settings.height, concat( 'height="', $attribute.content.settings.height, '"' ), concat( 'height="', $attribute.content.$media_tag.height, '"' ) )}{/if} {if $media_tag|eq( 'video' )}data-setup='{ldelim}{rdelim}'{cond( $poster, $poster, '')}{/if}>
+<{$media_tag} id="xrow_media_{$attribute.id}"{if $media_tag|eq( 'video' )} class="video-js vjs-default-skin"{/if} {cond( $attribute.content.settings.controls, ' controls="controls"', '' )}{cond( $attribute.content.settings.loop, ' loop', '' )} preload="auto" {if $media_tag|eq( 'video' )}{cond(  $attribute.content.settings.width, concat( 'width="', $attribute.content.settings.width, '"' ), concat( 'width="', $attribute.content.video.width, '"' ) )} {cond( $attribute.content.settings.height, concat( 'height="', $attribute.content.settings.height, '"' ), concat( 'height="', $attribute.content.$media_tag.height, '"' ) )}{/if} {if $media_tag|eq( 'video' )} data-setup="{ldelim}{cond( $attribute.content.settings.autoplay, 'autoplay:true,', '' )},{rdelim}" {cond( $poster, $poster, '')}{/if}>
 
 {foreach $media.source as $item}
 
