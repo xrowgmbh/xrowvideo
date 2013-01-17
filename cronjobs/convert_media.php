@@ -192,8 +192,8 @@ while( true )
                         }
                         $root['status'] = xrowMedia::STATUS_CONVERSION_FINISHED;
                         $content['media']->saveData();
+						$file->deleteLocal();
                     }
-                    $file->deleteLocal();
                 }
 
                 # clear view cache
