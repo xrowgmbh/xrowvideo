@@ -9,7 +9,13 @@ How to use xrowvideo:
 4. Install the cronjob:
 # php runcronjobs.php -s admin convertmedia
 
+5. (optional) Ajust memory limit
+The uploaded file is loaded fully into memory. Therefore the module needs a high memory limit. Ajust the php setting "php_value memory_limit 2048M" in the vhost.
+
+
 The cronjob should run very often, the uploaded videos are only visible after the cronjob has run. 
+
+Known Issues
 
 =============
 
