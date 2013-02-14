@@ -22,7 +22,7 @@
              $media=cond( and( is_set( $attribute.content.video ), $attribute.content.video|count|gt(0) ), $attribute.content.video, $attribute.content.audio )}
         <table class="list" cellspacing="0">
         <tr>
-            <th>{'Filename'|i18n( 'design/standard/content/datatype' )}</th>
+            <th style="width: 50%">{'Filename'|i18n( 'design/standard/content/datatype' )}</th>
             <th>{'MIME type'|i18n( 'design/standard/content/datatype' )}</th>
             <th>{'Size'|i18n( 'design/standard/content/datatype' )}</th>
             {if $media_tag|eq( 'video' )}
@@ -44,25 +44,29 @@
         <p>{'There is no file.'|i18n( 'design/standard/content/datatype' )}</p>
     {/if}
     {if and( is_set( $media.source ), $media.source|count|gt(0) )}
-            <label style="margin-top: 1em;">{'Converted files'|i18n( 'design/standard/content/datatype' )}:</label>
-            <table class="list" cellspacing="0">
+        <label style="margin-top: 1em;">{'Converted files'|i18n( 'design/standard/content/datatype' )}:</label>
+        <table class="list" cellspacing="0">
             <tr>
-                <th>{'Filename'|i18n( 'design/standard/content/datatype' )}</th>
-            {*    <th>{'Codec'|i18n( 'design/standard/content/datatype' )}</th> *}
+                <th style="width: 50%">{'Filename'|i18n( 'design/standard/content/datatype' )}</th>
+                <th>{'MIME type'|i18n( 'design/standard/content/datatype' )}</th>
                 <th>{'Size'|i18n( 'design/standard/content/datatype' )}</th>
+                {if $media_tag|eq( 'video' )}
+                <th>{'Width'|i18n( 'design/standard/content/datatype' )} x {'Height'|i18n( 'design/standard/content/datatype' )}</th>
+                {/if}
             </tr>
             {foreach $media.source as $mitem}
             <tr>
-            <td><a target="_blank" href={concat( 'xrowvideo/download/', $contentobject_id, '/', $attribute.id,'/', $attribute.version , '/', $mitem.src|rawurlencode, '/', $mitem.originalfilename|rawurlencode )|ezurl}>{$mitem.originalfilename|wash}</a>
-<{$media_tag} preload="none" controls="controls" 
-onerror="alert('Cannot play provided codecs.')"
-src={concat( 'xrowvideo/download/', $contentobject_id, '/', $attribute.id,'/', $attribute.version , '/', $mitem.src|rawurlencode, '/', $mitem.originalfilename|rawurlencode )|ezurl} />
-</td>
-            {*    <td>{'Codec'|i18n( 'design/standard/content/datatype' )} {$video.codecs|wash}</td> *}
+                <td>
+                    <a target="_blank" href={concat( 'xrowvideo/download/', $contentobject_id, '/', $attribute.id,'/', $attribute.version , '/', $mitem.src|rawurlencode, '/', $mitem.originalfilename|rawurlencode )|ezurl}>{$mitem.originalfilename|wash}</a>
+                </td>
+                <td>{$mitem.mimetype}</td>
                 <td>{$mitem.filesize|si( byte )}</td>
+                {if $media_tag|eq( 'video' )}
+                <td>{$mitem.width} x {$mitem.height}</td>
+                {/if}
             </tr>
             {/foreach}
-            </table>
+        </table>
     {else}
         <p>{'The media files will be created soon.'|i18n( 'design/standard/content/datatype' )}</p>
     {/if}

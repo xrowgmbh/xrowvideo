@@ -10,12 +10,9 @@ $ViewList['download'] = array(
  );
 $ViewList['upload'] = array(
     'script' => 'upload.php',
-    'functions' => array( 'upload' ),
     'params' => array( 'AttributeID', 'Version', 'Language', 'Random' )
-    );
+);
 
 $FunctionList = array();
-
-$FunctionList['upload'] = array();
 
 ?>

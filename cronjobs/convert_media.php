@@ -9,19 +9,18 @@ $offset = 0;
 $limit = 50;
 
 $ini = eZINI::instance( 'xrowvideo.ini' );
-
 $videoConvertArray = $ini->variable( 'xrowVideoSettings', 'ConvertVideoFiles' );
 foreach ( $videoConvertArray as $key )
 {
-    $convertSettings['video'][$key]['options'] = $ini->variable( $key, 'Options' );
-    $convertSettings['video'][$key]['program'] = $ini->variable( $key, 'Program' );
+    $convertSettings['video'][$key] = array( 'options' => $ini->variable( $key, 'Options' ),
+                                             'program' => $ini->variable( $key, 'Program' ) );
 }
 
 $audioConvertArray = $ini->variable( 'xrowVideoSettings', 'ConvertAudioFiles' );
 foreach ( $audioConvertArray as $key )
 {
-    $convertSettings['audio'][$key]['options'] = $ini->variable( $key, 'Options' );
-    $convertSettings['audio'][$key]['program'] = $ini->variable( $key, 'Program' );
+    $convertSettings['audio'][$key] = array( 'options' => $ini->variable( $key, 'Options' ),
+                                             'program' => $ini->variable( $key, 'Program' ) );
 }
 
 while( true )
@@ -61,7 +60,7 @@ while( true )
                         }
                         $pathParts = pathinfo( $filePath );
                         $mediaType = xrowMedia::checkMediaType( $binary->attribute( 'mime_type' ) );
-                        if (  $mediaType == xrowMedia::TYPE_VIDEO )
+                        if ( $mediaType == xrowMedia::TYPE_VIDEO )
                         {
                             $root = $content['media']->xml->video;
                             $cSettings = $convertSettings['video'];
@@ -84,119 +83,66 @@ while( true )
                         }
                         $root['status'] = xrowMedia::STATUS_CONVERSION_IN_PROGRESS;
                         $content['media']->saveData();
-                        # start the conversion process
-                        foreach ( $cSettings as $key => $setting )
+                        // start the conversion process
+                        if( $mediaType == xrowMedia::TYPE_VIDEO && $ini->variable( 'VideoBitrateSettings', 'UseVideoBitrate' ) == 'enabled' )
                         {
-                            if ( $key != $pathParts['extension'] )
+                            $bitrates = $ini->variable( 'VideoBitrateSettings', 'Bitrates' );
+                            foreach( $bitrates as $bitratekey => $bitrate )
                             {
-                                $newFileName = xrowMedia::newFileName( $pathParts, $key );
-                                $src = $content['media']->registerFile( $newFileName, $root );
-
-                                $command = $content['media']->buildCommandLine( $filePath,
-                                                                                $newFileName,
-                                                                                $setting['program'],
-                                                                                $setting['options'] );
-                                $cli->output( '# ' . $command );
-
-                                $ok = exec( $command );
-                                # check file and set status
-
-                                if ( file_exists( $newFileName ) )
+                                foreach ( $cSettings as $key => $setting )
                                 {
-                                    $info = stat( $newFileName );
-
-                                    if ( $info['size'] > 0 )
+                                    if ( $key != $pathParts['extension'] )
                                     {
-                                        $convertedFile = eZClusterFileHandler::instance( $newFileName );
-                                        if ( $convertedFile->exists() )
+                                        $src = execCommand( $root, $content, $pathParts, $bitratekey . '.', $key, $filePath, $setting, $bitrate, true );
+                                    }
+                                    else
+                                    {
+                                        // file already exists
+                                        $origFile = $root->xpath( "//source[@original=1]" );
+                                        if ( count( $origFile ) > 0 )
                                         {
-                                            $convertedFile->delete();
-                                            $convertedFile = eZClusterFileHandler::instance( $newFileName );
+                                            $src = $origFile[0];
+                                            $content['media']->updateFileInfo( $src );
+                                            $content['media']->setStatus( $src, xrowMedia::STATUS_CONVERSION_FINISHED );
                                         }
-                                        $mime = eZMimeType::findByURL( $newFileName );
-                                        $convertedFile->fileStore( $newFileName, 'binaryfile', false, $mime['name'] );
-                                        $content['media']->setStatus( $src, xrowMedia::STATUS_CONVERSION_FINISHED );
-                                        $content['media']->updateFileInfo( $src );
-                                        $convertedFile->deleteLocal();
-                                        $src['show'] = 1;
+                                        $src = execCommand( $root, $content, $pathParts, $bitratekey. '.conv.', $key, $filePath, $setting, $bitrate );
                                     }
-                                    else
-                                    {
-                                        $content['media']->setStatus( $src, xrowMedia::STATUS_CONVERSION_ERROR );
-                                        eZDebug::writeError( "Converted file has 0 bytes", 'xrowvideo - convert media' );
-                                    }
-                                }
-                                else
-                                {
-                                    $content['media']->setStatus( $src, xrowMedia::STATUS_CONVERSION_ERROR );
-                                    eZDebug::writeError( "Converted file doesn't exist", 'xrowvideo - convert media' );
+                                    // update mime type
+                                    $src['mimetype'] = $ini->variable( $key, 'MimeType' );
                                 }
                             }
-                            else
+                        }
+                        else
+                        {
+                            foreach ( $cSettings as $key => $setting )
                             {
-                                # file already exists
-                                $origFile = $root->xpath( "//source[@original=1]" );
-                                if ( count( $origFile ) > 0 )
+                                if ( $key != $pathParts['extension'] )
                                 {
-                                    $src = $origFile[0];
-                                    $content['media']->updateFileInfo( $src );
-                                    $content['media']->setStatus( $src, xrowMedia::STATUS_CONVERSION_FINISHED );
-                                }
-                                # create new file
-                                $newFileName = xrowMedia::newFileName( $pathParts, 'conv.' . $key );
-
-                                $src = $content['media']->registerFile( $newFileName, $root );
-
-                                $command = $content['media']->buildCommandLine( $filePath,
-                                                                                $newFileName,
-                                                                                $setting['program'],
-                                                                                $setting['options'] );
-                                eZDebug::writeDebug( $command, 'cli' );
-                                $ok = exec( $command );
-
-                                # check file and set status
-                                if ( file_exists( $newFileName ) )
-                                {
-                                    $info = stat( $newFileName );
-
-                                    if ( $info['size'] > 0 )
-                                    {
-                                        $convertedFile = eZClusterFileHandler::instance( $newFileName );
-                                        #if ( $convertedFile->exists() )
-                                        #{
-                                        #    $convertedFile->deleteFile();
-                                        #    $convertedFile = eZClusterFileHandler::instance( $newFileName );
-                                        #}
-                                        $mime = eZMimeType::findByURL( $newFileName );
-                                        $convertedFile->fileStore( $newFileName, 'binaryfile', false, $mime['name'] );
-
-                                        $content['media']->setStatus( $src, xrowMedia::STATUS_CONVERSION_FINISHED );
-                                        $content['media']->updateFileInfo( $src );
-                                        $convertedFile->deleteLocal();
-                                        $src['show'] = 1;
-                                    }
-                                    else
-                                    {
-                                        $content['media']->setStatus( $src, xrowMedia::STATUS_CONVERSION_ERROR );
-                                        eZDebug::writeError( "Converted file has 0 bytes", 'xrowvideo - convert media' );
-                                    }
+                                    $src = execCommand( $root, $content, $pathParts, '', $key, $filePath, $setting, '', true );
                                 }
                                 else
                                 {
-                                    $content['media']->setStatus( $src, xrowMedia::STATUS_CONVERSION_ERROR );
-                                    eZDebug::writeError( "Converted file doesn't exist", 'xrowvideo - convert media' );
+                                    # file already exists
+                                    $origFile = $root->xpath( "//source[@original=1]" );
+                                    if ( count( $origFile ) > 0 )
+                                    {
+                                        $src = $origFile[0];
+                                        $content['media']->updateFileInfo( $src );
+                                        $content['media']->setStatus( $src, xrowMedia::STATUS_CONVERSION_FINISHED );
+                                    }
+                                    $src = execCommand( $root, $content, $pathParts, 'conv.', $key, $filePath, $setting );
                                 }
+                                // update mime type
+                                $src['mimetype'] = $ini->variable( $key, 'MimeType' );
                             }
-                            # update mime type
-                            $src['mimetype'] = $ini->variable( $key, 'MimeType' );
                         }
                         $root['status'] = xrowMedia::STATUS_CONVERSION_FINISHED;
                         $content['media']->saveData();
-						$file->deleteLocal();
                     }
+                    $file->deleteLocal();
                 }
 
-                # clear view cache
+                // clear view cache
                 eZContentCacheManager::clearObjectViewCacheIfNeeded( $obj->ID );
             }
 
@@ -215,6 +161,54 @@ while( true )
         break; // No valid result from ezpending_actions
     }
 }
+$cli->output( "Done" );
+$cli->output( "" );
 
-$cli->output( "Done." );
+function execCommand( $root, $content, $pathParts, $file_suffix, $key, $filePath, $setting, $bitrate = '', $delete = false )
+{
+    GLOBAL $cli;
+    $newFileName = xrowMedia::newFileName( $pathParts, $file_suffix . $key );
+    $src = $content['media']->registerFile( $newFileName, $root );
 
+    $command = $content['media']->buildCommandLine( $filePath,
+                                                    $newFileName,
+                                                    $setting,
+                                                    $bitrate );
+
+    $cli->output( '# ' . $command );
+    $ok = exec( $command );
+
+    # check file and set status
+    if ( file_exists( $newFileName ) )
+    {
+        $info = stat( $newFileName );
+        if ( $info['size'] > 0 )
+        {
+            $convertedFile = eZClusterFileHandler::instance( $newFileName );
+            if ( $convertedFile->exists() && $delete )
+            {
+                $convertedFile->delete();
+                $convertedFile = eZClusterFileHandler::instance( $newFileName );
+            }
+            $mime = eZMimeType::findByURL( $newFileName );
+            $convertedFile->fileStore( $newFileName, 'binaryfile', false, $mime['name'] );
+            $content['media']->setStatus( $src, xrowMedia::STATUS_CONVERSION_FINISHED );
+            $content['media']->updateFileInfo( $src );
+            $convertedFile->deleteLocal();
+            $src['show'] = 1;
+            return $src;
+        }
+        else
+        {
+            $content['media']->setStatus( $src, xrowMedia::STATUS_CONVERSION_ERROR );
+            eZDebug::writeError( "Converted file has 0 bytes", 'xrowvideo - convert media' );
+            return null;
+        }
+    }
+    else
+    {
+        $content['media']->setStatus( $src, xrowMedia::STATUS_CONVERSION_ERROR );
+        eZDebug::writeError( "Converted file doesn't exist", 'xrowvideo - convert media' );
+        return null;
+    }
+}

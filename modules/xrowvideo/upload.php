@@ -1,20 +1,4 @@
 <?php
-    function storeName( $Filename = false, $suffix = false, $MimeCategory, $seed )
-    {
-        $dir = eZSys::storageDirectory() . '/original/' . $MimeCategory;
-        if ( !file_exists( $dir ) )
-        {
-            eZDir::mkdir( $dir, false, true );
-        }
-        $suffixString = false;
-        if ( $suffix != false )
-        {
-            $suffixString = '.'.$suffix;
-        }
-        $dest_name = $dir . '/' . md5( basename( $Filename ) . $seed ) . $suffixString;
-
-        return $dest_name;
-    }
 
 $Module = $Params['Module'];
 $attribute = eZContentObjectAttribute::fetch( $Params['AttributeID'], $Params['Version'], array( 'language_code' => $Params['Language'] ) );
@@ -222,3 +206,20 @@ elseif( !isset( $_REQUEST['chunk'] ) )
 // Return JSON-RPC response
 echo '{"jsonrpc" : "2.0", "result" : null, "id" : "'.basename( $storeName ).'"}';
 eZExecution::cleanExit();
+
+function storeName( $Filename = false, $suffix = false, $MimeCategory, $seed )
+{
+    $dir = eZSys::storageDirectory() . '/original/' . $MimeCategory;
+    if ( !file_exists( $dir ) )
+    {
+        eZDir::mkdir( $dir, false, true );
+    }
+    $suffixString = false;
+    if ( $suffix != false )
+    {
+        $suffixString = '.'.$suffix;
+    }
+    $dest_name = $dir . '/' . md5( basename( $Filename ) . $seed ) . $suffixString;
+
+    return $dest_name;
+}

@@ -28,98 +28,54 @@ ConvertAudioFiles[]=oga
 
 MaxVideoWidth=1920
 
+DefaultVideoForPlayer=720p
+
+[VideoBitrateSettings]
+UseVideoBitrate=enabled
+Bitrates[]
+# 1.920 × 1.080 Pixel, 7 MB/s Video, 192 Kbit/s Audio, 25fps - FULLHD
+Bitrates[1080p]=-s 1920x1080 -b 7M -r 25 -ab 192K
+# 1.280 × 720 Pixel, 4 MB/s Video, 128 Kbit/s Audio, 25fps - HALF HD
+Bitrates[720p]=-s 1280x720 -b 4M -r 25
+# 1.024 x 576 Pixel, 2.5 MB/s Video, 128 Kbit/s Audio, 25fps
+#Bitrates[576p]=-s 1024x576 -b 2.5M -r 25
+# 640 x 360 Pixel, 1.4 MB/s Video, 128 Kbit/s Audio, 25fps
+Bitrates[360p]=-s 640x360 -b 1.4M -r 25
+# 416 x 234 Pixel, 560 Kbit/s Video, 80 Kbit/s Audio, 25fps
+Bitrates[234p]=-s 416x234 -b 560K -r 25 -ab 80K
+# 384 x 216 Pixel, 360 Kbit/s Video, 80 Kbit/s Audio, 25fps
+Bitrates[216p]=-s 384x216 -b 360K -r 25 -ab 80K
+
 [flv]
-Program=ffmpeg
+Program=ffmpeg -y -i <original_file> <bitrate> <options> -f flv <converted_file>
 MimeType=video/x-flv
 # override output files
-Options[1]=-y
-# input file
-Options[2]=-i <original_file>
-# 1 = max, 31 = worst quality
-Options[4]=-qscale 10
-# set this parameter to resize the video to the max allowed width
-Options[5]=-s
-# sound
-Options[6]=-ab 128000 -ar 44100
-# output file
-Options[7]=-f flv <converted_file>
-
-[ogv]
-Program=ffmpeg
-MimeType=video/ogg
 Options[]
-# override output files
-Options[1]=-y
-# input file
-Options[2]=-i <original_file>
-# 1 = max, 31 = worst quality
-Options[4]=-qscale 10
-# set this parameter to resize the video to the max allowed width
-Options[5]=-s
-# sound
-Options[6]=-ab 128000 -ar 48000
-# output file
-Options[7]=-f ogg <converted_file>
-
-[oga]
-Program=ffmpeg
-MimeType=audio/ogg
-Options[]
-# override output files
-Options[1]=-y
-# input file
-Options[2]=-i <original_file>
-# drop audio
-Options[3]=-vn -acodec libvorbis
-# sound
-Options[4]=-ab 128000 -ar 44100
-# output file
-Options[5]=-f ogg <converted_file>
+Options[]=-ar 44100
 
 [mp4]
-Program=ffmpeg
+Program=ffmpeg -y -i <original_file> <bitrate> <options> -f mp4 <converted_file>
 MimeType=video/mp4
 Options[]
-# override output files
-Options[1]=-y
-# input file
-Options[2]=-i <original_file>
-# 1 = max, 31 = worst quality
-Options[4]=-qscale 10
-# set this parameter to resize the video to the max allowed width
-Options[5]=-s
-# sound
-Options[6]=-ab 128000 -ar 48000
-# output file
-Options[7]=-f mp4 <converted_file>
-
-[mp3]
-Program=ffmpeg
-MimeType=audio/mp3
-Options[]
-# override output files
-Options[1]=-y
-# input file
-Options[2]=-i <original_file>
-# sound
-Options[3]=-ab 128000 -ar 48000
-# output file
-Options[4]=-f mp3 <converted_file>
+Options[]=-acodec libvo_aacenc -threads 0
 
 [webm]
-Program=ffmpeg
+Program=ffmpeg -y -i <original_file> <bitrate> <options> -f webm <converted_file>
 MimeType=video/webm
 Options[]
-# override output files
-Options[1]=-y
-# input file
-Options[2]=-i <original_file>
-# 1 = max, 31 = worst quality
-Options[4]=-qscale 10
-# set this parameter to resize the video to the max allowed width
-Options[5]=-s
-# sound
-Options[6]=-ab 128000 -ar 48000
-# output file
-Options[7]=-f webm <converted_file>
 
+[mp3]
+Program=ffmpeg -y -i <original_file> <options> -f mp3 <converted_file>
+MimeType=audio/mp3
+Options[]
+Options[]=-ab 128000 -ar 48000
+
+[oga]
+Program=ffmpeg -y -i <original_file> <options> -f ogg <converted_file>
+MimeType=audio/ogg
+Options[]
+Options[]=-ab 128000 -ar 48000
+Options[]=-vn -acodec libvorbis
+
+ */
+?>

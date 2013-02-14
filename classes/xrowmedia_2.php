@@ -40,6 +40,7 @@ class xrowMedia
 
     public function getXMLData( $root )
     {
+        #eZDebug::writeDebug( $root, 'root' );
         $result = array();
         if ( isset( $this->xml->$root ) )
         {
@@ -52,16 +53,45 @@ class xrowMedia
                 $i = 0;
                 # get children which are not the original and have a good status
                 $nArray =  $this->xml->$root->xpath( "//source[@show=1 and @status = " . self::STATUS_CONVERSION_FINISHED . "]" );
+                $tmp = array();
                 foreach ( $nArray as $key => $item )
                 {
                     foreach ( $item->attributes() as $akey => $aitem )
                     {
-                        $result['source'][$i][$akey] = (string) $aitem;
+                        $tmp['source'][$i][$akey] = (string) $aitem;
                     }
                     $i++;
                 }
+                # sort the src
+                $xini = eZINI::instance( 'xrowvideo.ini' );
+                if ( $root == 'video' )
+                {
+                    $exArray = $xini->variable( 'xrowVideoSettings', 'ConvertVideoFiles' );
+                }
+                else
+                {
+                    $exArray = $xini->variable( 'xrowVideoSettings', 'ConvertAudioFiles' );
+                }
+
+                foreach( $exArray as $ext )
+                {
+                    if ( $xini->hasVariable( $ext, 'MimeType' ) )
+                    {
+                        $mType = $xini->variable( $ext, 'MimeType' );
+                        foreach ( $tmp['source'] as $skey => $src )
+                        {
+                            if ( $src['mimetype'] == $mType )
+                            {
+                                $result['source'][] = $src;
+                                unset( $tmp['source'][$skey] );
+                                break;
+                            }
+                        }
+                    }
+                }
             }
         }
+        #eZDebug::writeDebug( $result, __METHOD__ );
         return $result;
     }
 
@@ -295,27 +325,28 @@ class xrowMedia
      * @param $original_file : original full file path
      * @param $converted_file : converted full file path
      */
-    public function buildCommandLine( $original_file, $converted_file, $settings, $bitrate )
+    public function buildCommandLine( $original_file, $converted_file, $program, $options )
     {
+        $command = $program;
         $array_search = array();
-        $array_search[] = '/<original_file>/';
-        $array_search[] = '/<bitrate>/';
-        $array_search[] = '/<options>/';
-        $array_search[] = '/<converted_file>/';
-        $option = '';
-        
-        foreach( $settings['options'] as $opt )
+        $array_search[] = '<original_file>';
+        $array_search[] = '<converted_file>';
+        $array_replace = array();
+        $array_replace[] = $original_file;
+        $array_replace[] = $converted_file;
+        foreach( $options as $opt )
         {
             if ( trim( $opt ) == "-s" )
             {
-                // if maxwidth is higher than the original width
                 $optStr = '';
                 if ( isset( $this->xml->video ) )
                 {
+                    # add a max width check
                     $ini = eZINI::instance( 'xrowvideo.ini' );
                     if ( $ini->hasVariable( 'xrowVideoSettings', 'MaxVideoWidth' ) )
                     {
                         $maxWidth = $ini->variable( 'xrowVideoSettings', 'MaxVideoWidth' );
+                        # find the width of the original
                         $result = $this->xml->xpath( "//source[@original=1]" );
                         if ( count( $result ) > 0 )
                         {
@@ -324,10 +355,10 @@ class xrowMedia
                             {
                                 $this->updateFileInfo( $source );
                             }
-                            if ( isset( $source['width'] ) && (int) $source['width'] > 0 && (int) $source['width'] > $maxWidth )
+                            if ( isset( $source['width'] ) && (int) $source['width'] > $maxWidth && (int) $source['width'] > 0 )
                             {
                                 $newHeight =  round( $maxWidth * (int) $source['height'] / (int) $source['width'], 0 );
-                                // the new height must be direct number
+                                # the new height must be direct number
                                 if ( $newHeight % 2 > 0 )
                                 {
                                     $newHeight++;
@@ -340,20 +371,14 @@ class xrowMedia
             }
             else
             {
-                $optStr = $opt;
+                $optStr = str_replace( $array_search, $array_replace, $opt );
             }
             if ( trim( $optStr ) != '' )
             {
-                $option .= ' ' . $optStr;
+                $command .= ' ' . $optStr;
             }
         }
-        $array_replace = array();
-        $array_replace[] = $original_file;
-        $array_replace[] = $bitrate;
-        $array_replace[] = $option;
-        $array_replace[] = $converted_file;
 
-        $command = preg_replace( $array_search, $array_replace, $settings['program'] );
         return $command;
     }
 
