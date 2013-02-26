@@ -1,5 +1,7 @@
 <?php
 
+// php -d memory_limit=512M runcronjobs.php convertmedia
+
 $cli->output( "Start processing media conversion" );
 
 $contentObjects = array();
