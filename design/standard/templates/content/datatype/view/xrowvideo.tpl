@@ -35,9 +35,6 @@
             {if $item.src|contains( '.flv' )|not()}
                 {if $item.src|contains( $defaultFormat )}
                     {set $objects = $objects|append( $item )}
-                    {if $item.src|contains( '.mp4' )}
-                        {def $ie9_fallback_object = $item}
-                    {/if}
                 {else}
                     {set $objects_tmp = $objects_tmp|append( $item )}
                 {/if}
@@ -73,37 +70,10 @@
     {ezscript_require( 'xrowvideo.js' )}
     {/run-once}
 
-    <video width="400" height="240" poster="{$image_url}" autoplay controls loop>
-        {*<source src="http://ie.microsoft.com/testdrive/ieblog/2011/nov/pp4_blog_demo.mp4" type='video/mp4; codecs="avc1.42E01E,mp4a.40.2"'>*}
-        {*<source src="/extension/xrowvideo/design/standard/javascript/899f520f8b3559371d1970a3a9102d92.720p.mp4" type="video/mp4" />*}
-        {*<source src="/var/storage/original/video/899f520f8b3559371d1970a3a9102d92.720p.mp4" type="video/mp4" />*}
-        {foreach $objects as $item}
-            {if $media_tag|eq( 'video' )}
-                {if $ie9_fallback_object.src|eq( $item.src )}
-                    {def $path = "/extension/xrowvideo/design/standard/javascript/iPostersVideoHD.mp4"}
-                {else}
-                    {def $path = concat( 'xrowvideo/download/', $attribute.contentobject_id, '/', $attribute.id,'/', $attribute.version , '/', $item.src|rawurlencode )|ezurl()}
-                {/if}
-            {else}
-                {def $path = xrowvideo_get_filepath( $attribute.contentobject_id, $attribute.id, $attribute.version, $item.src|rawurlencode )|ezurl()}
-            {/if}
-            <source src={$path} type="{$item.mimetype}" />
-            {undef $path}
-        {/foreach}
-    </video>
     <div class="leanback-player-{$media_tag}"{if $media_tag|eq( 'audio' )}{$audio_width}{/if}>
         <{$media_tag} {if $media_tag|eq( 'video' )}{$media_attributes}{else}{$control_attributes}{/if}{if $image_url|ne( '' )} poster="{$image_url}"{/if}>
-        {*<source src="/extension/xrowvideo/design/standard/javascript/iPostersVideoHD.mp4" type="video/mp4" />*}
         {foreach $objects as $item}
-            {if $media_tag|eq( 'video' )}
-                {if $ie9_fallback_object.src|eq( $item.src )}
-                    {def $path = "/extension/xrowvideo/design/standard/javascript/iPostersVideoHD.mp4"}
-                {else}
-                    {def $path = concat( 'xrowvideo/download/', $attribute.contentobject_id, '/', $attribute.id,'/', $attribute.version , '/', $item.src|rawurlencode )|ezurl()}
-                {/if}
-            {else}
-                {def $path = xrowvideo_get_filepath( $attribute.contentobject_id, $attribute.id, $attribute.version, $item.src|rawurlencode )|ezurl()}
-            {/if}
+            {def $path = concat( 'xrowvideo/download/', $attribute.contentobject_id, '/', $attribute.id,'/', $attribute.version , '/', $item.src|rawurlencode )|ezurl()}
             <source src={$path} type="{$item.mimetype}" />
             {undef $path}
         {/foreach}
