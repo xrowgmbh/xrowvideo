@@ -37,11 +37,6 @@ header( 'Cache-Control: no-store, no-cache, must-revalidate' );
 header( 'Cache-Control: post-check=0, pre-check=0', false );
 header( 'Pragma: no-cache' );
 
-// Settings
-$targetDir = eZSys::instance()->storageDirectory() . DIRECTORY_SEPARATOR . 'plupload';
-$cleanupTargetDir = false; // Remove old files
-$maxFileAge = 60 * 60; // Temp file age in seconds
-
 // Get parameters
 $chunk = isset( $_REQUEST['chunk'] ) ? $_REQUEST['chunk'] : 0;
 $chunks = isset( $_REQUEST['chunks'] ) ? $_REQUEST['chunks'] : 0;
