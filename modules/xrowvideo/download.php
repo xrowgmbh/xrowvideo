@@ -67,6 +67,8 @@ $content = $contentObjectAttribute->content();
 $fileinfo = $content['media']->storedFileInfo( rawurldecode( $Params['File'] ) );
 $fileHandler = new eZFilePassthroughHandler();
 
+apache_setenv('no-gzip', '1');
+
 $result = $fileHandler->handleFileDownload( $contentObject, $contentObjectAttribute, eZBinaryFileHandler::TYPE_MEDIA, $fileinfo );
 
 if ( $result == eZBinaryFileHandler::RESULT_UNAVAILABLE )
