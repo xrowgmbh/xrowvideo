@@ -34,17 +34,17 @@ DefaultVideoForPlayer=720p
 UseVideoBitrate=enabled
 Bitrates[]
 # 1.920 × 1.080 Pixel, 7 MB/s Video, 192 Kbit/s Audio, 25fps - FULLHD
-Bitrates[1080p]=-s 1920x1080 -b 7M -r 25 -ab 192K
+Bitrates[1080p]=-s 1920x1080 -b:v 7M -r 25 -ab 192K
 # 1.280 × 720 Pixel, 4 MB/s Video, 128 Kbit/s Audio, 25fps - HALF HD
-Bitrates[720p]=-s 1280x720 -b 4M -r 25
+Bitrates[720p]=-s 1280x720 -b:v 4M -r 25
 # 1.024 x 576 Pixel, 2.5 MB/s Video, 128 Kbit/s Audio, 25fps
-#Bitrates[576p]=-s 1024x576 -b 2.5M -r 25
+#Bitrates[576p]=-s 1024x576 -b:v 2.5M -r 25
 # 640 x 360 Pixel, 1.4 MB/s Video, 128 Kbit/s Audio, 25fps
-Bitrates[360p]=-s 640x360 -b 1.4M -r 25
+Bitrates[360p]=-s 640x360 -b:v 1.4M -r 25
 # 416 x 234 Pixel, 560 Kbit/s Video, 80 Kbit/s Audio, 25fps
-Bitrates[234p]=-s 416x234 -b 560K -r 25 -ab 80K
+Bitrates[234p]=-s 416x234 -b:v 560K -r 25 -ab 80K
 # 384 x 216 Pixel, 360 Kbit/s Video, 80 Kbit/s Audio, 25fps
-Bitrates[216p]=-s 384x216 -b 360K -r 25 -ab 80K
+Bitrates[216p]=-s 384x216 -b:v 360K -r 25 -ab 80K
 
 [flv]
 Program=ffmpeg -y -i <original_file> <bitrate> <options> -f flv <converted_file>
