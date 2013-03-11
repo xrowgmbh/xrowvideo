@@ -152,38 +152,34 @@ $(function() {
     // Client side form validation
     var doupload = true;
 
-    $("#editform input[type=submit][name!=DiscardButton]").click( function(e){
-        $('input[type=submit]').attr('disabled', 'disabled');
-        //alert( $(this).attr( 'name' ) );
-        var myhtml = "<input name='" + $(this).attr( 'name' ) + "' type='hidden' value='1' />";
-        //alert( myhtml );
-        e.preventDefault();
-        //var uploader = $('#uploader').pluploadQueue();
-        if (uploader.files.length > 0) {
-            // When all files are uploaded submit form
-            uploader.bind('StateChanged', function() {
-                if (uploader.files.length === (uploader.total.uploaded + uploader.total.failed)) {
-                    //alert( 'upload done' );
-                    $("#editform").append( myhtml );
-                    $("#editform").submit();
-                }
-            });
-            // deactivate all submit buttons
-            //$('form').submit(function(){
-                // On submit disable its submit button
-            //    $('input[type=submit]', this).attr('disabled', 'disabled');
-            //});
-            uploader.start();
-        }
-        else
+    $("#editform input[type=submit]").each(function(){
+        if(($(this).attr('name') + '').indexOf('DiscardButton', 0) === -1 && ($(this).attr('name') + '').indexOf('RelationUploadNew', 0) === -1)
         {
-            //alert( 'no upload' );
-            $("#editform").append( myhtml );
-            $("#editform").submit();
+                $(this).click( function(e){
+                    $('input[type=submit]').attr('disabled', 'disabled');
+//                alert( $(this).attr( 'name' ) );
+                    var myhtml = "<input name='" + $(this).attr( 'name' ) + "' type='hidden' value='1' />";
+                    e.preventDefault();
+                    if (uploader.files.length > 0) {
+                        // When all files are uploaded submit form
+                        uploader.bind('StateChanged', function() {
+                            if (uploader.files.length === (uploader.total.uploaded + uploader.total.failed)) {
+                                $("#editform").append( myhtml );
+                                $("#editform").submit();
+                            }
+                        });
+                        uploader.start();
+                    }
+                    else
+                    {
+                        $("#editform").append( myhtml );
+                        $("#editform").submit();
+                    }
+                    return true;
+                });
         }
-        return true;
     });
-
+    
     uploader.bind('Init', function(up, params) {
         $('#filelist').html("<!-- Current runtime: " + params.runtime + " -->");
     });

@@ -451,6 +451,12 @@ body.h5_lb_iframe {
 .h5_lb_player .h5_lb_info_content .h5_lb_info_content_menu {
     position: absolute; top: 0;
 }
+
+.h5_lb_player .h5_lb_info_content .h5_lb_info_content_txt textarea{
+    width:98%;
+    height:72px;
+}
+
 .h5_lb_player .h5_lb_info_content .h5_lb_info_content_menu .entry {
     position: relative; top: 0; left: 20px; margin-left: -1px; padding: 6px 6px 2px; min-width: 65px; width: auto; height: 14px; font: 11px/1.231 "bitstream vera sans", "lucida grande", verdana !important; font-weight: bold !important; text-shadow: 1px 1px 1px rgba(0,0,0,0.5);
     border: 1px solid #4a4a4a; cursor: pointer; display: block; float: left; z-index: 1003;

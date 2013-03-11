@@ -224,7 +224,6 @@ LBP.prototype.initializeKeys = function() {
 /* fct: initialize audio-player */
 LBP.prototype.initializeAPlayer = function() {
 	var vid = this.options.vid, pid = this.options.pid;
-
 	/* do: create vars and values if undefined */
 	if(typeof(this.vars.buffering) === "undefined") {this.vars.buffering = {proc: null, moveProc: null, end: [], endChanged: 0, storeTime: 0};}
 	/* do: overwrite controls set by user */
@@ -943,7 +942,10 @@ LBP.prototype.addInfoControl = function(vid, pid) {
 	}
 	exts_content += "</ul>";
 
+    var plant=document.getElementById(vid);
+    var content_id=plant.getAttribute('data-objectid');
 	var content_default = this.getTranslation("Info_content_default_player", [this.options.infoUrl, this.version])+" &nbsp;&nbsp;&copy; Copyright 2010-2012, All Rights Reserved.";
+	var content_embed = "<iframe width=\"400\" height=\"240\" src=" + "\"http:\/\/" + document.domain + "\/xrowvideo\/embed\/"+ content_id +"\""+ "&nbsp;frameborder=\"0\" allowfullscreen><\/iframe>";
 
 	/* do: add extensions information if available */
 	if(ext_length > 0) {content_default += this.getTranslation("Info_content_default_exts")+exts_content;}
@@ -958,7 +960,12 @@ LBP.prototype.addInfoControl = function(vid, pid) {
 	LBP.createHTMLEl(elId+"_content_txt", "div", {id: elId+"_content_menu_default_txt", className: "info_txt about_txt"});
 	LBP.createHTMLEl(elId+"_content_menu_default_txt", "span", {id: elId+"_about_headline", className: "headline", innerHTML: this.getTranslation("About_headline")});
 	LBP.createHTMLEl(elId+"_content_menu_default_txt", "div", {id: elId+"_about_txt", innerHTML: content_default});
-
+    /*do: add xrow-embed info*/
+	LBP.createHTMLEl(elId+"_content_menu", "div", {id: elId+"_content_menu_embed", className: "entry", innerHTML: this.getTranslation("EmbedInfo")});
+	LBP.createHTMLEl(elId+"_content_txt", "div", {id: elId+"_content_menu_embed_txt", className: "info_txt embed_txt"});
+	LBP.createHTMLEl(elId+"_content_menu_embed_txt", "span", {id: elId+"_embed_headline", className: "headline", innerHTML: this.getTranslation("EmbedVideoTitle")});
+	LBP.createHTMLEl(elId+"_content_menu_embed_txt", "textarea", {id: elId+"_embed_txt", className:"embed_content_text", innerHTML: content_embed});
+    
 	/* do: prepare open info-url on mobile devices - TODO: try to find issue why we can not add this at the start of function (IE9 mobile does not like it above) */
 	if(LBP.isMobile && this.vars.audioPlayer) {
 		(function(p) {
@@ -994,6 +1001,8 @@ LBP.prototype.addInfoControl = function(vid, pid) {
 		LBP.mergeObjs(elId, {onclick: function() {p.vars.infoControlActivated = !p.vars.infoControlActivated; if(LBP.getElemStyle(elId+"_content", "display") === "none") {var c = LBP.$(elId+"_content_menu").childNodes; for(var i=0; i<c.length; i++) {LBP.removeCssClass(c[i], "entry_active"); LBP.hideEl(c[i].id+"_txt");} LBP.addCssClass(elId+"_content_menu_default", "entry_active"); LBP.showEl(elId+"_content_menu_default_txt"); LBP.showEl(elId+"_content");} else {LBP.hideEl(elId+"_content");}}});
 		LBP.mergeObjs(elId+"_content_menu_default", {onclick: function() {var c = LBP.$(elId+"_content_menu").childNodes; for(var i=0; i<c.length; i++) {LBP.removeCssClass(c[i], "entry_active"); LBP.hideEl(c[i].id+"_txt");} p.vars.infoControlActive = 0; LBP.addCssClass(this, "entry_active"); LBP.showEl(this.id+"_txt");}});
 		LBP.mergeObjs(elId+"_content_menu_shortcuts", {onclick: function() {var c = LBP.$(elId+"_content_menu").childNodes; for(var i=0; i<c.length; i++) {LBP.removeCssClass(c[i], "entry_active"); LBP.hideEl(c[i].id+"_txt");} p.vars.infoControlActive = 1; LBP.addCssClass(this, "entry_active"); LBP.showEl(this.id+"_txt");}});
+	    /*do: and "on" attributes for xrow-embed*/
+	    LBP.mergeObjs(elId+"_content_menu_embed", {onclick: function() {var c = LBP.$(elId+"_content_menu").childNodes; for(var i=0; i<c.length; i++) {LBP.removeCssClass(c[i], "entry_active"); LBP.hideEl(c[i].id+"_txt");} p.vars.infoControlActive = 1; LBP.addCssClass(this, "entry_active"); LBP.showEl(this.id+"_txt");}});
 		LBP.mergeObjs(elId+"_content_btn", {onclick: function() {p.vars.infoControlActivated = !p.vars.infoControlActivated; p.vars.infoControlActive = 0; LBP.hideEl(elId+"_content");}});
 	}(this));
 
@@ -1009,6 +1018,7 @@ LBP.prototype.addInfoControl = function(vid, pid) {
 	/* do: add keyboard shortcut - I (Information) */
 	this.vars.keyDownAction[73] = 'this.vars.infoControlActivated = !this.vars.infoControlActivated; this.vars.infoControlActive = 0; if(LBP.getElemStyle("'+elId+'_content", "display") === "none") {var c = LBP.$("'+elId+'_content_menu").childNodes; for(var i=0; i<c.length; i++) {LBP.removeCssClass(c[i], "entry_active"); LBP.hideEl(c[i].id+"_txt");} LBP.addCssClass("'+elId+'_content_menu_default", "entry_active"); LBP.showEl("'+elId+'_content_menu_default_txt"); LBP.showEl("'+elId+'_content");} else {LBP.hideEl("'+elId+'_content");}';
 };
+
 LBP.prototype.addInfoEntry = function(vid, entry, innerHTML) {
 	/* do: add entry to infoControl elements if not already */
 	if(LBP.inArray(this.vars.infoControlEl, entry)) {return;}
