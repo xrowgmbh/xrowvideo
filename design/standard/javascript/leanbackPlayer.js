@@ -942,7 +942,7 @@ LBP.prototype.addInfoControl = function(vid, pid) {
 	}
 	exts_content += "</ul>";
 
-    var plant=document.getElementById(vid);
+    var plant = document.getElementById(vid);
     var content_id=plant.getAttribute('data-objectid');
 	var content_default = this.getTranslation("Info_content_default_player", [this.options.infoUrl, this.version])+" &nbsp;&nbsp;&copy; Copyright 2010-2012, All Rights Reserved.";
 	var content_embed = "<iframe width=\"400\" height=\"240\" src=" + "\"http:\/\/" + document.domain + "\/xrowvideo\/embed\/"+ content_id +"\""+ "&nbsp;frameborder=\"0\" allowfullscreen><\/iframe>";
@@ -1413,7 +1413,7 @@ LBP.prototype.drawSourcesMenu = function(id) {
 	if(this.vars.playableSources[id].type !== null) {LBP.createHTMLEl(elId+"_"+id, "span", {id: elId+"_sup_"+id, innerHTML: " <span>"+this.vars.playableSources[id].type+"</span>"});}
 
 	(function(p) {
-		LBP.mergeObjs(elId+"_"+id, {title: p.getTranslation("Sources_to", txt), onclick: function() {if(p.vars.stoped) {return;} p.vars.seeking.subs = !p.vars.hideSubtitle; p.setSubtitle(false); p.fixLoadingSource("onSrcSwitch", null, p.vars.playableSources[id].src); p.setSourcesMenuTxt(id);}});
+		LBP.mergeObjs(elId+"_"+id, {title: p.getTranslation("Sources_to", txt), onclick: function() {/*if(p.vars.stoped) {return;}*/ p.vars.seeking.subs = !p.vars.hideSubtitle; p.setSubtitle(false); p.fixLoadingSource("onSrcSwitch", null, p.vars.playableSources[id].src); p.setSourcesMenuTxt(id);}});
 	}(this));
 
 	LBP.setCssStyle(navId, "top", "-"+parseInt((((LBP.$(navId) && LBP.$(navId).childNodes)?LBP.$(navId).childNodes.length:0)*(LBP.getElemStyle(elId+"_"+id, "height")+LBP.getElemBorderWidth(elId+"_"+id).top + LBP.getElemBorderWidth(elId+"_"+id).bottom+LBP.getElemPaddingWidth(elId+"_"+id).top + LBP.getElemPaddingWidth(elId+"_"+id).bottom))+5, 10)+"px");
