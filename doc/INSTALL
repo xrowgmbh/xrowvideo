@@ -12,6 +12,14 @@ How to use xrowvideo:
 5. (optional) Ajust memory limit
 The uploaded file is loaded fully into memory. Therefore the module needs a high memory limit. Ajust the php setting "php_value memory_limit 2048M" in the vhost.
 
+6. (optional) Install server components
+
+The operating system does require certain components. To install them via the package manager.
+
+# yum install php-ffmpeg ffmpeg
+# /etc/init.d/httpd restart
+
+
 
 The cronjob should run very often, the uploaded videos are only visible after the cronjob has run. 
 
