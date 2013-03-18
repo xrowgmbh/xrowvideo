@@ -95,7 +95,7 @@ while( true )
                                 {
                                     if ( $key != $pathParts['extension'] )
                                     {
-                                        $src = execCommand( $root, $content, $pathParts, $bitratekey . '.', $key, $filePath, $setting, $bitrate, true );
+                                        $src = execCommand( $root, $content, $pathParts, $bitratekey . '.', $key, $filePath, $setting, $bitrate );
                                     }
                                     else
                                     {
@@ -120,7 +120,7 @@ while( true )
                             {
                                 if ( $key != $pathParts['extension'] )
                                 {
-                                    $src = execCommand( $root, $content, $pathParts, '', $key, $filePath, $setting, '', true );
+                                    $src = execCommand( $root, $content, $pathParts, '', $key, $filePath, $setting );
                                 }
                                 else
                                 {
@@ -140,8 +140,9 @@ while( true )
                         }
                         $root['status'] = xrowMedia::STATUS_CONVERSION_FINISHED;
                         $content['media']->saveData();
+                        $file->deleteLocal();
                     }
-                    $file->deleteLocal();
+                    
                 }
 
                 // clear view cache
@@ -166,7 +167,7 @@ while( true )
 $cli->output( "Done" );
 $cli->output( "" );
 
-function execCommand( $root, $content, $pathParts, $file_suffix, $key, $filePath, $setting, $bitrate = '', $delete = false )
+function execCommand( $root, $content, $pathParts, $file_suffix, $key, $filePath, $setting, $bitrate = '' )
 {
     GLOBAL $cli;
     $newFileName = xrowMedia::newFileName( $pathParts, $file_suffix . $key );
@@ -187,11 +188,6 @@ function execCommand( $root, $content, $pathParts, $file_suffix, $key, $filePath
         if ( $info['size'] > 0 )
         {
             $convertedFile = eZClusterFileHandler::instance( $newFileName );
-            if ( $convertedFile->exists() && $delete )
-            {
-                $convertedFile->delete();
-                $convertedFile = eZClusterFileHandler::instance( $newFileName );
-            }
             $mime = eZMimeType::findByURL( $newFileName );
             $convertedFile->fileStore( $newFileName, 'binaryfile', false, $mime['name'] );
             $content['media']->setStatus( $src, xrowMedia::STATUS_CONVERSION_FINISHED );
