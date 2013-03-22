@@ -30,6 +30,7 @@
         {def $objects = array()
              $objects_tmp = array()
              $fallback_object = false()
+             $fallback_object_tmp = false()
              $defaultFormat = ezini( 'xrowVideoSettings', 'DefaultVideoForPlayer', 'xrowvideo.ini' )}
         {foreach $media.source as $item}
             {if $item.src|contains( '.flv' )|not()}
@@ -38,8 +39,11 @@
                 {else}
                     {set $objects_tmp = $objects_tmp|append( $item )}
                 {/if}
-            {elseif $item.src|contains( $defaultFormat )}
-                {set $fallback_object = $item}
+            {else}
+                {set $fallback_object_tmp = $item}
+                {if $item.src|contains( $defaultFormat )}
+                    {set $fallback_object = $item}
+                {/if}
             {/if}
         {/foreach}
         {set $objects = $objects|merge( $objects_tmp )}
@@ -48,6 +52,10 @@
     {/if}
     {* set for flash fallback only width and height *}
     {set $fallback_attributes = $media_attributes}
+    
+    {if and( $fallback_object|not(), $fallback_object_tmp )}
+        {set $fallback_object = $fallback_object_tmp}
+    {/if}
 
     {set $control_attributes = concat( ' ', cond( $attribute.content.settings.controls, ' controls="controls"', '' ) )}
     {set $control_attributes = concat( $control_attributes, ' ', cond( $attribute.content.settings.autoplay, ' autoplay', '' ) )}
@@ -79,13 +87,17 @@
         {/foreach}
             {if and( $media_tag|eq( 'video' ), $fallback_object )}
             {* Fallback Flash *}
-            {def $path_fallback = xrowvideo_get_filepath( $attribute.contentobject_id, $attribute.id, $attribute.version, $fallback_object.src|rawurlencode )|ezurl( 'no', 'full' )}
+            {def $path_fallback = concat( 'xrowvideo/download/', $attribute.contentobject_id, '/', $attribute.id, '/', $attribute.version, '/', $fallback_object.src|rawurlencode )|ezurl( 'no', 'full' )}
             <object class="leanback-player-flash-fallback" {$fallback_attributes} type="application/x-shockwave-flash" data="http://releases.flowplayer.org/swf/flowplayer.swf">
                 <param name="movie" value="http://releases.flowplayer.org/swf/flowplayer.swf" />
                 <param name="allowFullScreen" value="true" />
                 <param name="wmode" value="opaque" />
                 <param name="bgcolor" value="#000000" />
+                {if $image_url}
                 <param name="flashVars" value="config={ldelim}'playlist':['{$image_url}', {ldelim}'url':'{$path_fallback}', 'autoPlay':{cond( $attribute.content.settings.autoplay, 'true', 'false')}, 'autobuffering':true{rdelim}]{rdelim}" />
+                {else}
+                <param name="flashVars" value="config={ldelim}'clip':{ldelim}'url':'{$path_fallback}','autoPlay':{cond( $attribute.content.settings.autoplay, 'true', 'false')},'autobuffering':true{rdelim}{rdelim}" />
+                {/if}
             </object>
             {/if}
             {* Fallback HTML *}
