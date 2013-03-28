@@ -5,11 +5,12 @@
 /* LeanBack Player - no HTML5, no Flash */
 .leanback-player-html-fallback {position: relative; text-align: center; font: 13px/1.231 arial, helvetica, sans-serif !important; color: #000 !important; z-index: 1002;}
 .leanback-player-html-fallback img {z-index: 1000;}
-.leanback-player-html-fallback div {position: absolute; width: auto; min-width: 220px; height: 70px; bottom: 0px; left: 0; right: 0px; margin: 0; padding: 5px 5px 0; background: #fff; z-index: 1001;}
+.leanback-player-html-fallback div {position: relative; width: auto; min-width: 220px; height: 70px; left: 0; right: 0px; margin: -5px; padding: 5px 5px 0; background: #fff; z-index: 1001;}
 .leanback-player-html-fallback a {font-size: 12px; color: #000 !important; text-decoration: none;}
 .leanback-player-html-fallback a:hover {border-bottom: dotted 1px #000;}
-.leanback-player-audio .leanback-player-html-fallback {position: relative; min-width: 220px !important; height: 20px !important;}
-.leanback-player-audio .leanback-player-html-fallback div {bottom: auto; left: auto; right: auto;}
+.leanback-player-audio .leanback-player-html-fallback {position: relative; min-width: 220px !important;}
+.leanback-player-audio .leanback-player-html-fallback div{height:20px; bottom: auto;}
+audio{display: block;width:400px;height:30px;}
 /************************************/
 /* LeanBack Player - Flash Fallback */
 .leanback-player-flash-fallback {position: absolute; margin: auto; text-align: center; z-index: 1003;}
