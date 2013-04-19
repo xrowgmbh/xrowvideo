@@ -105,7 +105,7 @@
                 <object class="leanback-player-flash-fallback" {$fallback_attributes} type="application/x-shockwave-flash" data="http://releases.flowplayer.org/swf/flowplayer.swf">
                     <param name="movie" value="http://releases.flowplayer.org/swf/flowplayer.swf" />
                     <param name="allowFullScreen" value="true" />
-                    <param name="wmode" value="opaque" />
+                    <param name="wmode" value="transparent" />
                     <param name="bgcolor" value="#000000" />
                     {if $image_url}
                     <param name="flashVars" value="config={ldelim}'playlist':['{$image_url}', {ldelim}'url':'{$path_fallback}', 'autoPlay':{cond( $attribute.content.settings.autoplay, 'true', 'false')}, 'autobuffering':true{rdelim}]{rdelim}" />
@@ -117,6 +117,7 @@
                 <object class="flow-player-flash-fallback" width="400" height="30" type="application/x-shockwave-flash" data="http://releases.flowplayer.org/swf/flowplayer-3.2.16.swf">
                     <param name="movie" value="http://releases.flowplayer.org/swf/flowplayer-3.2.16.swf"/>
                     <param value="true" name="allowfullscreen"/>
+                    <param name="wmode" value="transparent" /> 
                     <param value="always" name="allowscriptaccess"/>
                     <param value="high" name="quality"/>
                     <param value="#000000" name="bgcolor"/>
