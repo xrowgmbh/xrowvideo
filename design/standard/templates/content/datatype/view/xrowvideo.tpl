@@ -30,6 +30,7 @@
         {def $objects = array()
              $objects_tmp = array()
              $fallback_object = false()
+             $fallback_object_tmp = false()
              $defaultFormat = ezini( 'xrowVideoSettings', 'DefaultVideoForPlayer', 'xrowvideo.ini' )}
         {foreach $media.source as $item}
             {if $item.src|contains( '.flv' )|not()}
@@ -38,8 +39,11 @@
                 {else}
                     {set $objects_tmp = $objects_tmp|append( $item )}
                 {/if}
-            {elseif $item.src|contains( $defaultFormat )}
-                {set $fallback_object = $item}
+            {else}
+                {set $fallback_object_tmp = $item}
+                {if $item.src|contains( $defaultFormat )}
+                    {set $fallback_object = $item}
+                {/if}
             {/if}
         {/foreach}
         {set $objects = $objects|merge( $objects_tmp )}
@@ -48,6 +52,10 @@
     {/if}
     {* set for flash fallback only width and height *}
     {set $fallback_attributes = $media_attributes}
+    
+    {if and( $fallback_object|not(), $fallback_object_tmp )}
+        {set $fallback_object = $fallback_object_tmp}
+    {/if}
 
     {set $control_attributes = concat( ' ', cond( $attribute.content.settings.controls, ' controls="controls"', '' ) )}
     {set $control_attributes = concat( $control_attributes, ' ', cond( $attribute.content.settings.autoplay, ' autoplay', '' ) )}
@@ -67,31 +75,61 @@
     {ezscript_require( 'leanbackPlayer.fr.js' )}
     {ezscript_require( 'leanbackPlayer.nl.js' )}
     {ezscript_require( 'leanbackPlayer.ru.js' )}
+    {*ezscript_require( 'flash_detect_min.js' )*}
     {ezscript_require( 'xrowvideo.js' )}
     {/run-once}
 
     <div class="leanback-player-{$media_tag}"{if $media_tag|eq( 'audio' )}{$audio_width}{/if}>
+        <!--[if gt IE 8]>
         <{$media_tag} {if $media_tag|eq( 'video' )}{$media_attributes}{else}{$control_attributes}{/if}{if $image_url|ne( '' )} poster="{$image_url}"{/if} data-objectid="{$attribute.contentobject_id}">
-        {foreach $objects as $item}
-            {def $path = concat( 'xrowvideo/download/', $attribute.contentobject_id, '/', $attribute.id,'/', $attribute.version , '/', $item.src|rawurlencode )|ezurl()}
-            <source src={$path} type="{$item.mimetype}" />
-            {undef $path}
-        {/foreach}
+        <![endif]-->
+        <!--[if lt IE 9]>
+        <div {if $media_tag|eq( 'video' )}{$media_attributes}{else}{$control_attributes}{/if}{if $image_url|ne( '' )} poster="{$image_url}"{/if} data-objectid="{$attribute.contentobject_id}">
+        <![endif]-->
+        <!--[if !IE]>-->  
+        <{$media_tag} {if $media_tag|eq( 'video' )}{$media_attributes}{else}{$control_attributes}{/if}{if $image_url|ne( '' )} poster="{$image_url}"{/if} data-objectid="{$attribute.contentobject_id}">
+        <!--<![endif]--> 
+            {foreach $objects as $item}
+                {def $path = concat( 'xrowvideo/download/', $attribute.contentobject_id, '/', $attribute.id,'/', $attribute.version , '/', $item.src|rawurlencode )|ezurl()}
+                <source src={$path} type="{$item.mimetype}" />
+                {undef $path}
+            {/foreach}
+            {foreach $objects as $item}
+                {if $item.mimetype|contains('audio/mp3')}
+                    {def $path_audio = concat( 'xrowvideo/download/', $attribute.contentobject_id, '/', $attribute.id,'/', $attribute.version , '/', $item.src|rawurlencode )|ezurl('no','full')}
+                {/if}
+            {/foreach}
             {if and( $media_tag|eq( 'video' ), $fallback_object )}
-            {* Fallback Flash *}
-            {def $path_fallback = xrowvideo_get_filepath( $attribute.contentobject_id, $attribute.id, $attribute.version, $fallback_object.src|rawurlencode )|ezurl( 'no', 'full' )}
-            <object class="leanback-player-flash-fallback" {$fallback_attributes} type="application/x-shockwave-flash" data="http://releases.flowplayer.org/swf/flowplayer.swf">
-                <param name="movie" value="http://releases.flowplayer.org/swf/flowplayer.swf" />
-                <param name="allowFullScreen" value="true" />
-                <param name="wmode" value="opaque" />
-                <param name="bgcolor" value="#000000" />
-                <param name="flashVars" value="config={ldelim}'playlist':['{$image_url}', {ldelim}'url':'{$path_fallback}', 'autoPlay':{cond( $attribute.content.settings.autoplay, 'true', 'false')}, 'autobuffering':true{rdelim}]{rdelim}" />
-            </object>
+                {* Fallback Flash *}
+                {def $path_fallback = concat( 'xrowvideo/download/', $attribute.contentobject_id, '/', $attribute.id, '/', $attribute.version, '/', $fallback_object.src|rawurlencode )|ezurl( 'no', 'full' )}
+                <object class="leanback-player-flash-fallback" {$fallback_attributes} type="application/x-shockwave-flash" data="http://releases.flowplayer.org/swf/flowplayer.swf">
+                    <param name="movie" value="http://releases.flowplayer.org/swf/flowplayer.swf" />
+                    <param name="allowFullScreen" value="true" />
+                    <param name="wmode" value="transparent" />
+                    <param name="bgcolor" value="#000000" />
+                    {if $image_url}
+                    <param name="flashVars" value="config={ldelim}'playlist':['{$image_url}', {ldelim}'url':'{$path_fallback}', 'autoPlay':{cond( $attribute.content.settings.autoplay, 'true', 'false')}, 'autobuffering':true{rdelim}]{rdelim}" />
+                    {else}
+                    <param name="flashVars" value="config={ldelim}'clip':{ldelim}'url':'{$path_fallback}','autoPlay':{cond( $attribute.content.settings.autoplay, 'true', 'false')},'autobuffering':true{rdelim}{rdelim}" />
+                    {/if}
+                </object>
+            {elseif $media_tag|eq( 'audio' )}
+                <object class="flow-player-flash-fallback" width="400" height="30" type="application/x-shockwave-flash" data="http://releases.flowplayer.org/swf/flowplayer-3.2.16.swf">
+                    <param name="movie" value="http://releases.flowplayer.org/swf/flowplayer-3.2.16.swf"/>
+                    <param value="true" name="allowfullscreen"/>
+                    <param name="wmode" value="transparent" /> 
+                    <param value="always" name="allowscriptaccess"/>
+                    <param value="high" name="quality"/>
+                    <param value="#000000" name="bgcolor"/>
+                    <param name="flashvars" value="config={ldelim}'plugins':{ldelim}'controls':{ldelim}'fullscreen':false,'height':30,'autoHide':false{rdelim}{rdelim},'clip':{ldelim}'autoPlay':false,'url':'{$path_audio}'{rdelim},'playlist':[{ldelim}'autoPlay':false,'url':'{$path_audio}'{rdelim}]{rdelim}"/>
+                </object>
             {/if}
             {* Fallback HTML *}
             <div class="leanback-player-html-fallback" {$fallback_attributes}>
-                <img src="{$image_url}" {$fallback_attributes} alt="Poster Image" title="No HTML5-Video playback capabilities found. Please download the video(s) below." />
-                <div>
+                {if $media_tag|eq( 'video' )}
+                    <img src="{$image_url}" {$fallback_attributes} alt="Poster Image" title="No HTML5-Video playback capabilities found. Please download the video(s) below." />
+                {/if}
+                <div class="download-info">
                     <strong>Download {if $media_tag|eq( 'video' )}Video{else}Audio{/if}:</strong>
                     {foreach $objects as $key => $item}
                     {def $name_parts = $item.originalfilename|explode( '.' )
@@ -102,7 +140,15 @@
                     {/foreach}
                 </div>
             </div>
-        </{$media_tag}>
+        <!--[if gt IE 8]>
+           </{$media_tag}>
+        <![endif]-->
+        <!--[if lt IE 9]>
+           </div>
+        <![endif]-->
+        <!--[if !IE]>-->  
+           </{$media_tag}>
+        <!--<![endif]--> 
     </div>
 {else}
     {if $attribute.has_content|not()}

@@ -14,6 +14,7 @@ TranslationExtensions[]=xrowvideo
 PolicyOmitList[]=xrowvideo/download
 PolicyOmitList[]=xrowvideo/upload
 PolicyOmitList[]=xrowvideo/embed
+
 [HTTPHeaderSettings]
 Cache-Control[/xrowvideo/embed]=public, must-revalidate, max-age=600
 Pragma[/xrowvideo/embed]=

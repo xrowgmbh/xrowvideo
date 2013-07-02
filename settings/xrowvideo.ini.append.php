@@ -28,7 +28,7 @@ ConvertAudioFiles[]=oga
 
 MaxVideoWidth=1920
 
-DefaultVideoForPlayer=720p
+DefaultVideoForPlayer=360p
 
 [VideoBitrateSettings]
 UseVideoBitrate=enabled

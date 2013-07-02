@@ -942,7 +942,7 @@ LBP.prototype.addInfoControl = function(vid, pid) {
 	}
 	exts_content += "</ul>";
 
-    var plant=document.getElementById(vid);
+    var plant = document.getElementById(vid);
     var content_id=plant.getAttribute('data-objectid');
 	var content_default = this.getTranslation("Info_content_default_player", [this.options.infoUrl, this.version])+" &nbsp;&nbsp;&copy; Copyright 2010-2012, All Rights Reserved.";
 	var content_embed = "<iframe width=\"400\" height=\"240\" src=" + "\"http:\/\/" + document.domain + "\/xrowvideo\/embed\/"+ content_id +"\""+ "&nbsp;frameborder=\"0\" allowfullscreen><\/iframe>";
@@ -1231,7 +1231,9 @@ LBP.prototype.initializeDocumentEvents = function() {
 	try {
 		(function(p) {
 			LBP.addEvent(window, "message", function(e) {
-				var data = JSON.parse(e.data)||false;
+				var data = false;
+				try {data = JSON.parse(e.data);} catch(_ex) {}
+				
 				if(!!data && typeof(data.action) !== "undefined" && data.action === "setScreen" && typeof(data.vid) !== "undefined" && data.vid === p.options.vid && typeof(data.value) !== "undefined") {
 					p.setScreen(data.value, true, data.cors, data.bsXY);
 				} else if(!!data && typeof(data.action) !== "undefined" && data.action === "setCorsStatus" && typeof(data.vid) !== "undefined" && data.vid === p.options.vid && typeof(data.cors) !== "undefined" && typeof(data.iframe) !== "undefined") {
@@ -1413,7 +1415,7 @@ LBP.prototype.drawSourcesMenu = function(id) {
 	if(this.vars.playableSources[id].type !== null) {LBP.createHTMLEl(elId+"_"+id, "span", {id: elId+"_sup_"+id, innerHTML: " <span>"+this.vars.playableSources[id].type+"</span>"});}
 
 	(function(p) {
-		LBP.mergeObjs(elId+"_"+id, {title: p.getTranslation("Sources_to", txt), onclick: function() {if(p.vars.stoped) {return;} p.vars.seeking.subs = !p.vars.hideSubtitle; p.setSubtitle(false); p.fixLoadingSource("onSrcSwitch", null, p.vars.playableSources[id].src); p.setSourcesMenuTxt(id);}});
+		LBP.mergeObjs(elId+"_"+id, {title: p.getTranslation("Sources_to", txt), onclick: function() {/*if(p.vars.stoped) {return;}*/ p.vars.seeking.subs = !p.vars.hideSubtitle; p.setSubtitle(false); p.fixLoadingSource("onSrcSwitch", null, p.vars.playableSources[id].src); p.setSourcesMenuTxt(id);}});
 	}(this));
 
 	LBP.setCssStyle(navId, "top", "-"+parseInt((((LBP.$(navId) && LBP.$(navId).childNodes)?LBP.$(navId).childNodes.length:0)*(LBP.getElemStyle(elId+"_"+id, "height")+LBP.getElemBorderWidth(elId+"_"+id).top + LBP.getElemBorderWidth(elId+"_"+id).bottom+LBP.getElemPaddingWidth(elId+"_"+id).top + LBP.getElemPaddingWidth(elId+"_"+id).bottom))+5, 10)+"px");
@@ -2882,7 +2884,7 @@ LBP.setCssStyle = function(e, s, v) {
 /* fct: get player object by id */
 LBP.getPlayer = function(id) {
 	if(id === null) {return;}
-    for(var i=0, j=_LBP_Player.length; i<j; i++) {if(id.indexOf(_LBP_Player[i].options.vid) !== -1) {return _LBP_Player[i];}}
+    for(var i=0, j=_LBP_Player.length; i<j; i++) {if(id === _LBP_Player[i].options.vid) {return _LBP_Player[i];}}
 	return;
 };
 /* fct: blur/focus player */
@@ -3010,7 +3012,8 @@ LBP.resizeToBrowser = function(h,w, bsXY) {
 };
 /* fct: receive (CORS) IFrame postMessage events */
 LBP.receiveIframeEvent = function(e) {
-	var data = JSON.parse(e.data)||false;
+	var data = false;
+	try {data = JSON.parse(e.data);} catch(_ex) {}
 	if(!!data && data.action === "setScreen") {
 		LBP.setIframeParentScreen(e);
 	} else if(!!data && data.action === "getCorsStatus") {

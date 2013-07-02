@@ -3,6 +3,11 @@
 $Module = array( 'name' => 'xrow Video Module and Views' );
 
 $ViewList = array();
+$ViewList['embed'] = array(
+    'default_navigation_part' => 'ezcontentnavigationpart',
+    'script' => 'embed.php',
+    'params' => array( 'ContentObjectID' )
+ );
 $ViewList['download'] = array(
     'default_navigation_part' => 'ezcontentnavigationpart',
     'script' => 'download.php',
