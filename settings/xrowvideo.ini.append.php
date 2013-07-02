@@ -33,13 +33,13 @@ DefaultVideoForPlayer=360p
 [VideoBitrateSettings]
 UseVideoBitrate=enabled
 Bitrates[]
-# 1.920 × 1.080 Pixel, 7 MB/s Video, 192 Kbit/s Audio, 25fps - FULLHD
+# 1.920 × 1.080 Pixel, 7 MBit/s Video, 192 Kbit/s Audio, 25fps - FULLHD
 Bitrates[1080p]=-s 1920x1080 -b:v 7M -r 25 -ab 192K
-# 1.280 × 720 Pixel, 4 MB/s Video, 128 Kbit/s Audio, 25fps - HALF HD
+# 1.280 × 720 Pixel, 4 MBit/s Video, 128 Kbit/s Audio, 25fps - HALF HD
 Bitrates[720p]=-s 1280x720 -b:v 4M -r 25
-# 1.024 x 576 Pixel, 2.5 MB/s Video, 128 Kbit/s Audio, 25fps
+# 1.024 x 576 Pixel, 2.5 MBit/s Video, 128 Kbit/s Audio, 25fps
 #Bitrates[576p]=-s 1024x576 -b:v 2.5M -r 25
-# 640 x 360 Pixel, 1.4 MB/s Video, 128 Kbit/s Audio, 25fps
+# 640 x 360 Pixel, 1.4 MBit/s Video, 128 Kbit/s Audio, 25fps
 Bitrates[360p]=-s 640x360 -b:v 1.4M -r 25
 # 416 x 234 Pixel, 560 Kbit/s Video, 80 Kbit/s Audio, 25fps
 #Bitrates[234p]=-s 416x234 -b:v 560K -r 25 -ab 80K
