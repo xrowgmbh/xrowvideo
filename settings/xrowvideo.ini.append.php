@@ -47,35 +47,39 @@ Bitrates[360p]=-s 640x360 -b:v 1.4M -r 25
 Bitrates[216p]=-s 384x216 -b:v 360K -r 25 -ab 80K
 
 [flv]
-Program=ffmpeg -y -i <original_file> <bitrate> <options> -f flv <converted_file>
+Program=ffmpeg -threads 4 -y -i <original_file> <bitrate> <options> -f flv <converted_file>
 MimeType=video/x-flv
 # override output files
 Options[]
+Options[]=-threads 4
 Options[]=-ar 44100
 
 [mp4]
 Program=ffmpeg -y -i <original_file> <bitrate> <options> -f mp4 <converted_file>
 MimeType=video/mp4
 Options[]
+Options[]=-threads 4
 Options[]=-acodec libvo_aacenc -threads 0
 
 [webm]
 Program=ffmpeg -y -i <original_file> <bitrate> <options> -f webm <converted_file>
 MimeType=video/webm
 Options[]
+Options[]=-threads 4
 
 [mp3]
-Program=ffmpeg -y -i <original_file> <options> -f mp3 <converted_file>
+Program=ffmpeg -y -threads 4 -i <original_file> <options> -f mp3 <converted_file>
 MimeType=audio/mp3
 Options[]
+Options[]=-threads 4
 Options[]=-ab 128000 -ar 48000
 
 [oga]
 Program=ffmpeg -y -i <original_file> <options> -f ogg <converted_file>
 MimeType=audio/ogg
 Options[]
+Options[]=-threads 4
 Options[]=-ab 128000 -ar 48000
 Options[]=-vn -acodec libvorbis
 
- */
-?>
+*/?>
