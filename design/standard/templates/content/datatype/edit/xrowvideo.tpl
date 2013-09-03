@@ -67,9 +67,11 @@
             </tr>
             {/foreach}
         </table>
-    {else}
+    {elseif $content.pending}
         <p>{'The media files will be created soon.'|i18n( 'design/standard/content/datatype' )}</p>
-    {/if}
+    {else}
+	    <p>{'The media files are not scheduled for conversion.'|i18n( 'design/standard/content/datatype' )}</p>
+	{/if}
 
 {* Remove button. *}
 {if $content.binary}

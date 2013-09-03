@@ -153,7 +153,7 @@
 {else}
     {if $attribute.has_content|not()}
     <p>{'There is no file.'|i18n( 'design/standard/content/datatype' )}</p>
-    {else}
-    <p>{'The media files will be created soon.'|i18n( 'design/standard/content/datatype' )}</p>
-    {/if}
+    {elseif $content.pending}
+        <p>{'The media files will be created soon.'|i18n( 'design/standard/content/datatype' )}</p>
+	{/if}
 {/if}

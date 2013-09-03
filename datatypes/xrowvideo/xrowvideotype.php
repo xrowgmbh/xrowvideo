@@ -90,7 +90,7 @@ class xrowVideoType extends eZBinaryFileType
     	$result['video'] = $mObj->getXMLData( 'video' );
     	$result['audio'] = $mObj->getXMLData( 'audio' );
     	$result['media'] = $mObj;
-
+        $result['pending'] = $mObj->hasPendingAction();
     	# ffmpeg check
     	if ( !class_exists( 'ffmpeg_movie' ) )
     	{

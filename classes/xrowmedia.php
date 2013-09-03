@@ -94,7 +94,23 @@ class xrowMedia
             $this->settings[$key] = (string) $this->xml->settings[$key];
         }
     }
+    public function hasPendingAction()
+    {
+        $info = $this->attribute->ID . '-' . $this->attribute->Version;
 
+        $cond = array( 'param' => $info,
+                       'action' => "xrow_convert_media" );
+
+        $obj = eZPendingActions::fetchObject( eZPendingActions::definition(), null, $cond );
+		if ( $obj )
+		{
+		    return true;
+		}
+		else
+		{
+		    return false;
+		}
+    }
     public function addPendingAction()
     {
         $info = $this->attribute->ID . '-' . $this->attribute->Version;
