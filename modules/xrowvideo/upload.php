@@ -155,6 +155,9 @@ else
     }
 }
 $targetchunk = $chunks -1;
+
+$db = eZDB::instance();
+$db->begin();
 if( isset( $_REQUEST['chunk'] ) and $chunk == $targetchunk )
 {
     $contentObjectAttributeID = $attribute->attribute( 'id' );
@@ -197,7 +200,7 @@ elseif( !isset( $_REQUEST['chunk'] ) )
     $attribute->store();
     $fileHandler->deleteLocal();
 }
-
+$db->commit();
 // Return JSON-RPC response
 echo '{"jsonrpc" : "2.0", "result" : null, "id" : "'.basename( $storeName ).'"}';
 eZExecution::cleanExit();
