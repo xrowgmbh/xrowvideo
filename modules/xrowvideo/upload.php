@@ -178,6 +178,7 @@ if( isset( $_REQUEST['chunk'] ) and $chunk == $targetchunk )
     $attribute->setAttribute( 'data_text', $mObj->xml->saveXML() );
     $attribute->store();
     $fileHandler->deleteLocal();
+	eZLog::write( gmdate( 'D, d M Y H:i:s', time() ) . " ObjectID #" . $obj->ID . " completed", "xrowvideo.log");
 }
 elseif( !isset( $_REQUEST['chunk'] ) )
 {
@@ -199,6 +200,7 @@ elseif( !isset( $_REQUEST['chunk'] ) )
     $attribute->setAttribute( 'data_text', $mObj->xml->saveXML() );
     $attribute->store();
     $fileHandler->deleteLocal();
+	eZLog::write( gmdate( 'D, d M Y H:i:s', time() ) . " ObjectID #" . $obj->ID . " completed", "xrowvideo.log");
 }
 $db->commit();
 // Return JSON-RPC response
