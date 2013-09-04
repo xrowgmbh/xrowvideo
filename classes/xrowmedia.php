@@ -102,14 +102,14 @@ class xrowMedia
                        'action' => "xrow_convert_media" );
 
         $obj = eZPendingActions::fetchObject( eZPendingActions::definition(), null, $cond );
-		if ( $obj )
-		{
-		    return true;
-		}
-		else
-		{
-		    return false;
-		}
+	if ( $obj )
+	{
+            return true;
+	}
+	else
+	{
+            return false;
+	}
     }
     public function addPendingAction()
     {
