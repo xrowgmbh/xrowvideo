@@ -81,23 +81,23 @@ class xrowVideoType extends eZBinaryFileType
 
     function objectAttributeContent( $contentObjectAttribute )
     {
-    	$binaryFile = eZBinaryFile::fetch( $contentObjectAttribute->attribute( "id" ),
-											$contentObjectAttribute->attribute( "version" ) );
-    	$result = array();
-    	$result['binary'] = $binaryFile;
-    	$mObj = new xrowMedia( $contentObjectAttribute  );
-    	$result['settings'] = $mObj->settings;
-    	$result['video'] = $mObj->getXMLData( 'video' );
-    	$result['audio'] = $mObj->getXMLData( 'audio' );
-    	$result['media'] = $mObj;
+        $binaryFile = eZBinaryFile::fetch( $contentObjectAttribute->attribute( "id" ),
+                                           $contentObjectAttribute->attribute( "version" ) );
+        $result = array();
+        $result['binary'] = $binaryFile;
+        $mObj = new xrowMedia( $contentObjectAttribute  );
+        $result['settings'] = $mObj->settings;
+        $result['video'] = $mObj->getXMLData( 'video' );
+        $result['audio'] = $mObj->getXMLData( 'audio' );
+        $result['media'] = $mObj;
         $result['pending'] = $mObj->hasPendingAction();
-    	# ffmpeg check
-    	if ( !class_exists( 'ffmpeg_movie' ) )
-    	{
-    	    $result['error'] = self::ERROR_NO_FFMPEG_INSTALLED;
-    	}
+        # ffmpeg check
+        if ( !class_exists( 'ffmpeg_movie' ) )
+        {
+            $result['error'] = self::ERROR_NO_FFMPEG_INSTALLED;
+        }
 
-    	return $result;
+        return $result;
     }
 
     /**

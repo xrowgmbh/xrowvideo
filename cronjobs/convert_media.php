@@ -86,31 +86,45 @@ while( true )
                         $root['status'] = xrowMedia::STATUS_CONVERSION_IN_PROGRESS;
                         $content['media']->saveData();
                         // start the conversion process
-                        if( $mediaType == xrowMedia::TYPE_VIDEO && $ini->variable( 'VideoBitrateSettings', 'UseVideoBitrate' ) == 'enabled' )
+                        if( $mediaType == xrowMedia::TYPE_VIDEO && $ini->variable( 'xrowVideoSettings', 'UseVideoBitrate' ) == 'enabled' )
                         {
-                            $bitrates = $ini->variable( 'VideoBitrateSettings', 'Bitrates' );
-                            foreach( $bitrates as $bitratekey => $bitrate )
+                            $bitrates = $ini->variable( 'xrowVideoSettings', 'Bitrates' );
+                            foreach( $bitrates as $bitratekey )
                             {
-                                foreach ( $cSettings as $key => $setting )
+                                if( isset( $ini->BlockValues['Bitrate_' . $bitratekey] ) )
                                 {
-                                    if ( $key != $pathParts['extension'] )
+                                    $convertCommandBlock = $ini->BlockValues['Bitrate_' . $bitratekey];
+                                    if( $ini->hasVariable( 'xrowVideoSettings', 'ConvertCommandReplace' ) )
                                     {
-                                        $src = execCommand( $root, $content, $pathParts, $bitratekey . '.', $key, $filePath, $setting, $bitrate );
-                                    }
-                                    else
-                                    {
-                                        // file already exists
-                                        $origFile = $root->xpath( "//source[@original=1]" );
-                                        if ( count( $origFile ) > 0 )
+                                        $convertCommandReplace = $ini->variable( 'xrowVideoSettings', 'ConvertCommandReplace' );
+                                        $bitrate = '-s ' . $convertCommandBlock['Height'] . 'x' . $convertCommandBlock['Width'];
+                                        foreach( $convertCommandBlock as $convertCommandItem => $convertCommandItemValue )
                                         {
-                                            $src = $origFile[0];
-                                            $content['media']->updateFileInfo( $src );
-                                            $content['media']->setStatus( $src, xrowMedia::STATUS_CONVERSION_FINISHED );
+                                            if( isset( $convertCommandReplace[$convertCommandItem] ) )
+                                                $bitrate .= ' ' . $convertCommandReplace[$convertCommandItem] . ' ' . $convertCommandItemValue;
                                         }
-                                        $src = execCommand( $root, $content, $pathParts, $bitratekey. '.conv.', $key, $filePath, $setting, $bitrate );
+                                        foreach ( $cSettings as $key => $setting )
+                                        {
+                                            if ( $key != $pathParts['extension'] )
+                                            {
+                                                $src = execCommand( $root, $content, $pathParts, $bitratekey . '.', $key, $filePath, $setting, $bitrate );
+                                            }
+                                            else
+                                            {
+                                                // file already exists
+                                                $origFile = $root->xpath( "//source[@original=1]" );
+                                                if ( count( $origFile ) > 0 )
+                                                {
+                                                    $src = $origFile[0];
+                                                    $content['media']->updateFileInfo( $src );
+                                                    $content['media']->setStatus( $src, xrowMedia::STATUS_CONVERSION_FINISHED );
+                                                }
+                                                $src = execCommand( $root, $content, $pathParts, $bitratekey. '.conv.', $key, $filePath, $setting, $bitrate );
+                                            }
+                                            // update mime type
+                                            $src['mimetype'] = $ini->variable( $key, 'MimeType' );
+                                        }
                                     }
-                                    // update mime type
-                                    $src['mimetype'] = $ini->variable( $key, 'MimeType' );
                                 }
                             }
                         }

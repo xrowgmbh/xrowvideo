@@ -30,55 +30,89 @@ MaxVideoWidth=1920
 
 DefaultVideoForPlayer=360p
 
-[VideoBitrateSettings]
 UseVideoBitrate=enabled
+ConvertCommandReplace[]
+ConvertCommandReplace[VideoBitrate]=-b:v
+ConvertCommandReplace[AudioBitrate]=-ab
+ConvertCommandReplace[FramesPerSecond]=-r
 Bitrates[]
-# 1.920 × 1.080 Pixel, 7 MBit/s Video, 192 Kbit/s Audio, 25fps - FULLHD
-Bitrates[1080p]=-s 1920x1080 -b:v 7M -r 25 -ab 192K
-# 1.280 × 720 Pixel, 4 MBit/s Video, 128 Kbit/s Audio, 25fps - HALF HD
-Bitrates[720p]=-s 1280x720 -b:v 4M -r 25
-# 1.024 x 576 Pixel, 2.5 MBit/s Video, 128 Kbit/s Audio, 25fps
-#Bitrates[576p]=-s 1024x576 -b:v 2.5M -r 25
-# 640 x 360 Pixel, 1.4 MBit/s Video, 128 Kbit/s Audio, 25fps
-Bitrates[360p]=-s 640x360 -b:v 1.4M -r 25
-# 416 x 234 Pixel, 560 Kbit/s Video, 80 Kbit/s Audio, 25fps
-#Bitrates[234p]=-s 416x234 -b:v 560K -r 25 -ab 80K
-# 384 x 216 Pixel, 360 Kbit/s Video, 80 Kbit/s Audio, 25fps
-Bitrates[216p]=-s 384x216 -b:v 360K -r 25 -ab 80K
+Bitrates[]=1080p
+Bitrates[]=720p
+#Bitrates[]=576p
+Bitrates[]=360p
+Bitrates[]=234p
+Bitrates[]=216p
+
+[Bitrate_1080p]
+Width=1920
+Height=1080
+VideoBitrate=7M
+AudioBitrate=192K
+FramesPerSecond=25
+
+[Bitrate_720p]
+Width=1280
+Height=720
+VideoBitrate=4M
+AudioBitrate=128K
+FramesPerSecond=25
+
+[Bitrate_576p]
+Width=1024
+Height=576
+VideoBitrate=2.5M
+AudioBitrate=128K
+FramesPerSecond=25
+
+[Bitrate_360p]
+Width=640
+Height=360
+VideoBitrate=1.4M
+AudioBitrate=128K
+FramesPerSecond=25
+
+[Bitrate_234p]
+Width=416
+Height=234
+VideoBitrate=560K
+AudioBitrate=80K
+FramesPerSecond=25
+
+[Bitrate_216p]
+Width=384
+Height=216
+VideoBitrate=360K
+AudioBitrate=80K
+FramesPerSecond=25
 
 [flv]
-Program=ffmpeg -threads 4 -y -i <original_file> <bitrate> <options> -f flv <converted_file>
+Program=ffmpeg -y -i <original_file> <bitrate> <options> -f flv <converted_file>
 MimeType=video/x-flv
 # override output files
 Options[]
-Options[]=-threads 4
 Options[]=-ar 44100
 
 [mp4]
 Program=ffmpeg -y -i <original_file> <bitrate> <options> -f mp4 <converted_file>
 MimeType=video/mp4
 Options[]
-Options[]=-threads 4
 Options[]=-acodec libvo_aacenc -threads 0
 
 [webm]
 Program=ffmpeg -y -i <original_file> <bitrate> <options> -f webm <converted_file>
 MimeType=video/webm
 Options[]
-Options[]=-threads 4
 
 [mp3]
-Program=ffmpeg -y -threads 4 -i <original_file> <options> -f mp3 <converted_file>
+Program=ffmpeg -y -i <original_file> <options> -f mp3 <converted_file>
 MimeType=audio/mp3
 Options[]
-Options[]=-threads 4
 Options[]=-ab 128000 -ar 48000
 
 [oga]
 Program=ffmpeg -y -i <original_file> <options> -f ogg <converted_file>
 MimeType=audio/ogg
 Options[]
-Options[]=-threads 4
 Options[]=-ab 128000 -ar 48000
 Options[]=-vn -acodec libvorbis
 

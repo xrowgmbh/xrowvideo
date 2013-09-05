@@ -72,7 +72,7 @@
     {elseif $attribute.object.data_map.[$attribute.contentclass_attribute_identifier].content.pending}
         <p>{'Please discard this draft or upload a new video file. The current version is currently getting encoded.'|i18n( 'design/standard/content/datatype' )}</p>
     {elseif $attribute.has_content}
-	<p>{'The media files are not scheduled for conversion.'|i18n( 'design/standard/content/datatype' )}</p>
+        <p>{'The media files are not scheduled for conversion.'|i18n( 'design/standard/content/datatype' )}</p>
     {/if}
 
 {* Remove button. *}
