@@ -6,7 +6,9 @@
      $control_attributes = 'preload="auto"'
      $fallback_attributes = ''
      $audio_width = ''
-     $image_url = ''}
+     $image_url = ''
+     $default_width = 400
+     $default_height = 240}
 {if and( $attribute.has_content, is_set( $media.source ), $media.source|count|gt( 0 ) )}
     {if $media_tag|eq( 'video' )}
         {* select the default Video *}
@@ -41,7 +43,7 @@
     {if and( $fallback_object|not(), $fallback_object_tmp )}
         {set $fallback_object = $fallback_object_tmp}
     {/if}
-    
+
     {if is_set( $width )}
         {set $media_attributes = concat( 'width="', $width, '"' )
              $audio_width = concat( ' style="width: ', $width, ';"' )}
@@ -49,8 +51,10 @@
         {set $media_attributes = concat( 'width="', $attribute.content.settings.width|trim(), '"' )
              $audio_width = concat( ' style="width: ', $attribute.content.settings.width|trim(), ';"' )}
     {elseif $default_item}
-        {set $media_attributes = concat( 'width="', $default_item.width, '"' )
-             $audio_width = concat( ' style="width: ', $default_item.width, ';"' )}
+        {set $media_attributes = concat( 'width="', $default_item.width, '"' )}
+    {else}
+        {set $media_attributes = concat( 'width="', $default_width, '"' )
+             $audio_width = concat( ' style="width: ', $default_width, ';"' )}
     {/if}
     {if is_set( $height )}
         {set $media_attributes = concat( $media_attributes, ' height="', $height, '"' )}
@@ -58,6 +62,8 @@
         {set $media_attributes = concat( $media_attributes, ' height="', $attribute.content.settings.height|trim(), '"' )}
     {elseif $default_item}
         {set $media_attributes = concat( $media_attributes, ' height="', $default_item.height, '"' )}
+    {else}
+        {set $media_attributes = concat( $media_attributes, ' height="', $default_height, '"' )}
     {/if}
 
     {set $control_attributes = concat( ' ', cond( $attribute.content.settings.controls, ' controls="controls"', '' ) )}

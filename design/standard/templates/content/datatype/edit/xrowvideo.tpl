@@ -12,7 +12,6 @@
      $width = first_set( $content.video.width, $content.audio.width, $content.settings.width )
      $height = first_set( $content.video.height,  $content.audio.height, $content.settings.height )
      $duration = first_set( $content.video.duration,  $content.audio.duration, 0 )}
-
 {if and( is_set( $content['error'] ), $content['error']|eq( 1 ) )}
     <p>{'ffmpeg is not installed. Please contact the administrator.'|i18n( 'design/standard/content/datatype' )}</p>
 {else}
