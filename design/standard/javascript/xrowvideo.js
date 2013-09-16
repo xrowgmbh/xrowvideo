@@ -6,12 +6,3 @@ LBP.options = {
     defaultLanguage: 'de',
     hideControls: false
 };
-
-/* flash aktivieren oder deaktivieren*/
-$(function(){
-    if(FlashDetect.installed){      	
-        $(".download-info").remove() ;
-    }else{
-    	$(".flow-player-flash-fallback").remove();
-    }
-});

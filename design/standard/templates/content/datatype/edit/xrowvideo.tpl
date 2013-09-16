@@ -4,13 +4,15 @@
      $file_button_text = 'add_file'
      $language = ezini( 'xrowVideoSettings', 'Language', 'xrowvideo.ini')
      $runtimes = ezini( 'xrowVideoSettings', 'Runtimes', 'xrowvideo.ini')
-     $content=$attribute.content
-     $video_extensions=ezini( 'xrowVideoSettings', 'VideoExtensions', 'xrowvideo.ini')|implode(',')
+     $content = $attribute.content
+     $video_extensions = ezini( 'xrowVideoSettings', 'VideoExtensions', 'xrowvideo.ini')|implode(',')
      $contentobject_id = $attribute.contentobject_id
-     $width=first_set( $content.video.width, $content.audio.width, $content.settings.width )
-     $height=first_set( $content.video.height,  $content.audio.height, $content.settings.height )
-     $duration=first_set( $content.video.duration,  $content.audio.duration, 0 )
-}
+     $media_tag = cond( and( is_set( $content.video ), $content.video|count|gt( 0 ) ), 'video', 'audio' )
+     $media = cond( and( is_set( $content.video ), $content.video|count|gt( 0 ) ), $content.video, $content.audio )
+     $width = first_set( $content.video.width, $content.audio.width, $content.settings.width )
+     $height = first_set( $content.video.height,  $content.audio.height, $content.settings.height )
+     $duration = first_set( $content.video.duration,  $content.audio.duration, 0 )}
+
 {if and( is_set( $content['error'] ), $content['error']|eq( 1 ) )}
     <p>{'ffmpeg is not installed. Please contact the administrator.'|i18n( 'design/standard/content/datatype' )}</p>
 {else}
@@ -18,14 +20,12 @@
     <div class="block">
     <label>{'Current file'|i18n( 'design/standard/content/datatype' )}:</label>
     {if $attribute.has_content}
-        {def $media_tag=cond( and( is_set( $attribute.content.video ), $attribute.content.video|count|gt(0) ), 'video', 'audio' )
-             $media=cond( and( is_set( $attribute.content.video ), $attribute.content.video|count|gt(0) ), $attribute.content.video, $attribute.content.audio )}
         <table class="list" cellspacing="0">
         <tr>
             <th style="width: 50%">{'Filename'|i18n( 'design/standard/content/datatype' )}</th>
             <th>{'MIME type'|i18n( 'design/standard/content/datatype' )}</th>
             <th>{'Size'|i18n( 'design/standard/content/datatype' )}</th>
-            {if $media_tag|eq( 'video' )}
+            {if and( $media_tag|eq( 'video' ), is_set( $width ) )}
             <th>{'Width'|i18n( 'design/standard/content/datatype' )} x {'Height'|i18n( 'design/standard/content/datatype' )}</th>
             {/if}
             <th>{'Duration'|i18n( 'design/standard/content/datatype' )}</th>
@@ -34,7 +34,7 @@
             <td><a target="_blank" href={concat( 'xrowvideo/download/', $contentobject_id, '/', $attribute.id,'/', $attribute.version , '/', $content.binary.filename|rawurlencode, '/', $content.binary.original_filename|rawurlencode )|ezurl}>{$content.binary.original_filename}</a></td>
             <td>{$content.binary.mime_type}</td>
             <td>{$content.binary.filesize|si( byte )}</td>
-            {if $media_tag|eq( 'video' )}
+            {if and( $media_tag|eq( 'video' ), is_set( $width ) )}
             <td>{$width} x {$height}</td>
             {/if}
             <td>{$duration|l10n( 'number' )} {'sec.'|i18n( 'design/standard/content/datatype' )}</td>
@@ -236,23 +236,6 @@ $(function() {
 </div>
 
 <div class="block">
-
-{* deactived width and height *}
-{*
-<div class="element">
-    <label for="{$attribute_base}_media_{$attribute.id}_width">{'Width'|i18n( 'design/standard/content/datatype' )}:</label>
-    <input type="text" id="{$attribute_base}_media_{$attribute.id}_width" name="{$attribute_base}_data_media_width_{$attribute.id}" size="5" value="{$content.settings.width|wash}" />
-</div>
-
-<div class="element">
-    <label for="{$attribute_base}_media_{$attribute.id}_height">{'Height'|i18n( 'design/standard/content/datatype' )}:</label>
-    <input type="text" id="{$attribute_base}_media_{$attribute.id}_height" name="{$attribute_base}_data_media_height_{$attribute.id}" size="5" value="{$content.settings.height|wash}" />
-    &nbsp;
-    &nbsp;
-    &nbsp;
-</div>
-*}
-
 <div class="element">
     <label for="{$attribute_base}_media_{$attribute.id}_controls">{'Controller'|i18n( 'design/standard/content/datatype' )}:</label>
     <input id="{$attribute_base}_media_{$attribute.id}_controls" type="checkbox" name="{$attribute_base}_data_media_has_controls_{$attribute.id}" value="1" {if $content.settings.controls|int}checked="checked"{/if} />

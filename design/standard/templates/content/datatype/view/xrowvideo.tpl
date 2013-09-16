@@ -8,26 +8,10 @@
      $audio_width = ''
      $image_url = ''}
 {if and( $attribute.has_content, is_set( $media.source ), $media.source|count|gt( 0 ) )}
-    {if is_set( $width )}
-        {set $media_attributes = concat( 'width="', $width, '"' )
-             $audio_width = concat( ' style="width: ', $width, ';"' )}
-    {elseif and( is_set( $attribute.content.settings.width ), $attribute.content.settings.width|trim()|ne( '' ) )}
-        {set $media_attributes = concat( 'width="', $attribute.content.settings.width|trim(), '"' )
-             $audio_width = concat( ' style="width: ', $attribute.content.settings.width|trim(), ';"' )}
-    {elseif and( is_set( $media.width ), $media.width|trim()|ne( '' ) )}
-        {set $media_attributes = concat( 'width="', $media.width|trim(), '"' )
-             $audio_width = concat( ' style="width: ', $media.width|trim(), ';"' )}
-    {/if}
-    {if is_set( $height )}
-        {set $media_attributes = concat( $media_attributes, ' height="', $height, '"' )}
-    {elseif and( is_set( $attribute.content.settings.height ), $attribute.content.settings.height|trim()|ne( '' ) )}
-        {set $media_attributes = concat( $media_attributes, ' height="', $attribute.content.settings.height|trim(), '"' )}
-    {elseif and( is_set( $media.height ), $media.height|trim()|ne( '' ) )}
-        {set $media_attributes = concat( $media_attributes, ' height="', $media.height|trim(), '"' )}
-    {/if}
     {if $media_tag|eq( 'video' )}
         {* select the default Video *}
         {def $objects = array()
+             $default_item = false()
              $objects_tmp = array()
              $fallback_object = false()
              $fallback_object_tmp = false()
@@ -35,7 +19,8 @@
         {foreach $media.source as $item}
             {if $item.src|contains( '.flv' )|not()}
                 {if $item.src|contains( $defaultFormat )}
-                    {set $objects = $objects|append( $item )}
+                    {set $default_item = $item
+                         $objects = $objects|append( $item )}
                 {else}
                     {set $objects_tmp = $objects_tmp|append( $item )}
                 {/if}
@@ -55,6 +40,24 @@
     
     {if and( $fallback_object|not(), $fallback_object_tmp )}
         {set $fallback_object = $fallback_object_tmp}
+    {/if}
+    
+    {if is_set( $width )}
+        {set $media_attributes = concat( 'width="', $width, '"' )
+             $audio_width = concat( ' style="width: ', $width, ';"' )}
+    {elseif and( is_set( $attribute.content.settings.width ), $attribute.content.settings.width|trim()|ne( '' ) )}
+        {set $media_attributes = concat( 'width="', $attribute.content.settings.width|trim(), '"' )
+             $audio_width = concat( ' style="width: ', $attribute.content.settings.width|trim(), ';"' )}
+    {elseif $default_item}
+        {set $media_attributes = concat( 'width="', $default_item.width, '"' )
+             $audio_width = concat( ' style="width: ', $default_item.width, ';"' )}
+    {/if}
+    {if is_set( $height )}
+        {set $media_attributes = concat( $media_attributes, ' height="', $height, '"' )}
+    {elseif and( is_set( $attribute.content.settings.height ), $attribute.content.settings.height|trim()|ne( '' ) )}
+        {set $media_attributes = concat( $media_attributes, ' height="', $attribute.content.settings.height|trim(), '"' )}
+    {elseif $default_item}
+        {set $media_attributes = concat( $media_attributes, ' height="', $default_item.height, '"' )}
     {/if}
 
     {set $control_attributes = concat( ' ', cond( $attribute.content.settings.controls, ' controls="controls"', '' ) )}
