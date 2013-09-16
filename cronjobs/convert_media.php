@@ -39,12 +39,10 @@ while( true )
             $attributeID = $params[0];
             $version = $params[1];
             $attr = eZContentObjectAttribute::fetch( $attributeID, $version );
-
             if ( $attr instanceof eZContentObjectAttribute )
             {
                 $obj = $attr->object();
-
-                # only convert published media files
+                // only convert published media files
                 if ( $obj instanceof eZContentObject && $obj->Status == eZContentObject::STATUS_PUBLISHED )
                 {
                     $cli->output( "Converting media of '" . $obj->attribute( 'name' ) . "'" );
@@ -55,7 +53,6 @@ while( true )
                         $filePath = $binary->filePath();
                         $file = eZClusterFileHandler::instance(  $filePath );
                         $file->fetch();
-
                         if ( $filePath{0} != '/' )
                         {
                             $filePath = str_replace( array( "/", "\\" ), array( DIRECTORY_SEPARATOR, DIRECTORY_SEPARATOR ), $filePath );
@@ -88,43 +85,41 @@ while( true )
                         // start the conversion process
                         if( $mediaType == xrowMedia::TYPE_VIDEO && $ini->variable( 'xrowVideoSettings', 'UseVideoBitrate' ) == 'enabled' )
                         {
+                            $originalFileAttributes = $content['media']->getXMLData( 'video', true );
                             $bitrates = $ini->variable( 'xrowVideoSettings', 'Bitrates' );
+                            $convertFile = false;
+                            $smallestBitrate = end( $bitrates );
                             foreach( $bitrates as $bitratekey )
                             {
                                 if( isset( $ini->BlockValues['Bitrate_' . $bitratekey] ) )
                                 {
                                     $convertCommandBlock = $ini->BlockValues['Bitrate_' . $bitratekey];
-                                    if( $ini->hasVariable( 'xrowVideoSettings', 'ConvertCommandReplace' ) )
+                                    if( $convertCommandBlock['Height'] <= $originalFileAttributes['height'] )
                                     {
-                                        $convertCommandReplace = $ini->variable( 'xrowVideoSettings', 'ConvertCommandReplace' );
-                                        $bitrate = '-s ' . $convertCommandBlock['Height'] . 'x' . $convertCommandBlock['Width'];
-                                        foreach( $convertCommandBlock as $convertCommandItem => $convertCommandItemValue )
-                                        {
-                                            if( isset( $convertCommandReplace[$convertCommandItem] ) )
-                                                $bitrate .= ' ' . $convertCommandReplace[$convertCommandItem] . ' ' . $convertCommandItemValue;
-                                        }
-                                        foreach ( $cSettings as $key => $setting )
-                                        {
-                                            if ( $key != $pathParts['extension'] )
-                                            {
-                                                $src = execCommand( $root, $content, $pathParts, $bitratekey . '.', $key, $filePath, $setting, $bitrate );
-                                            }
-                                            else
-                                            {
-                                                // file already exists
-                                                $origFile = $root->xpath( "//source[@original=1]" );
-                                                if ( count( $origFile ) > 0 )
-                                                {
-                                                    $src = $origFile[0];
-                                                    $content['media']->updateFileInfo( $src );
-                                                    $content['media']->setStatus( $src, xrowMedia::STATUS_CONVERSION_FINISHED );
-                                                }
-                                                $src = execCommand( $root, $content, $pathParts, $bitratekey. '.conv.', $key, $filePath, $setting, $bitrate );
-                                            }
-                                            // update mime type
-                                            $src['mimetype'] = $ini->variable( $key, 'MimeType' );
-                                        }
+                                        $convertFile = true;
+                                        $cli->output( '' );
+                                        $cli->output( '--------------------------------------------------------------' );
+                                        $cli->output( 'Converting to ' . $bitratekey . '.' );
+                                        $cli->output( '---------------------------------------------------------------' );
+                                        $cli->output( '' );
+                                        $src = convertFile( $bitratekey, $content, $originalFileAttributes, $root, $pathParts, $cSettings, $filePath, $convertCommandBlock, $ini );
                                     }
+                                    else
+                                    {
+                                        $cli->output( '' );
+                                        $cli->output( '---------------------------------------------------------------' );
+                                        $cli->output( 'Not converting to ' . $bitratekey . ' because original file is smaller.' );
+                                        $cli->output( '---------------------------------------------------------------' );
+                                        $cli->output( '' );
+                                    }
+                                }
+                            }
+                            if( $convertFile === false )
+                            {
+                                if( isset( $ini->BlockValues['Bitrate_' . $smallestBitrate] ) )
+                                {
+                                    $convertCommandBlock = $ini->BlockValues['Bitrate_' . $smallestBitrate];
+                                    $src = convertFile( $smallestBitrate, $content, $originalFileAttributes, $root, $pathParts, $cSettings, $filePath, $convertCommandBlock, $ini );
                                 }
                             }
                         }
@@ -138,7 +133,7 @@ while( true )
                                 }
                                 else
                                 {
-                                    # file already exists
+                                    // file already exists
                                     $origFile = $root->xpath( "//source[@original=1]" );
                                     if ( count( $origFile ) > 0 )
                                     {
@@ -153,12 +148,31 @@ while( true )
                             }
                         }
                         $root['status'] = xrowMedia::STATUS_CONVERSION_FINISHED;
+                        $content['media']->xml->video['width'] = $originalFileAttributes['width'];
+                        $content['media']->xml->video['height'] = $originalFileAttributes['height'];
+                        $content['media']->xml->video['duration'] = $originalFileAttributes['duration'];
                         $content['media']->saveData();
+                        // Update all versioned attribute
+                        $conditions = array( 'id' => $attributeID,
+                                             'version' => array( '!=', $version ) );
+                        $allVersionedAttributesWithTheSameVideo = eZPersistentObject::fetchObjectList( eZContentObjectAttribute::definition(),
+                                                                                                        null,
+                                                                                                        $conditions,
+                                                                                                        null,
+                                                                                                        null,
+                                                                                                        true );
+                        if( count( $allVersionedAttributesWithTheSameVideo ) > 0 )
+                        {
+                            $cli->output( '' );
+                            $cli->output( '--------------------------------------------------------------------------------' );
+                            $cli->output( 'Update all versioned attributes with the same video or where video is not exist.' );
+                            $cli->output( '--------------------------------------------------------------------------------' );
+                            $cli->output( '' );
+                            xrowMedia::updateGivenAttributesDataText( $allVersionedAttributesWithTheSameVideo, $content, $binary );
+                        }
                         $file->deleteLocal();
                     }
-                    
                 }
-
                 // clear view cache
                 eZContentCacheManager::clearObjectViewCacheIfNeeded( $obj->ID );
             }
@@ -180,6 +194,56 @@ while( true )
 }
 $cli->output( "Done" );
 $cli->output( "" );
+
+function convertFile( $bitratekey, $content, $file_attributes, $root, $pathParts, $cSettings, $filePath, $convertCommandBlock, $ini )
+{
+    if( $ini->hasVariable( 'xrowVideoSettings', 'ConvertCommandReplace' ) )
+    {
+        $convertCommandReplace = $ini->variable( 'xrowVideoSettings', 'ConvertCommandReplace' );
+        $keepProportion = $ini->variable( 'xrowVideoSettings', 'KeepProportion' );
+        if( $keepProportion != 'enabled' )
+        {
+            $newWidth = $convertCommandBlock['Width'];
+        }
+        else
+        {
+            $newWidth = round( $file_attributes['width'] * $convertCommandBlock['Height'] / $file_attributes['height'] );
+            // check if new height is divisible by 2 because the libx264 returns an error: [libx264 @ 0x97b660] height not divisible by 2 (384x241)
+            if( $newWidth %2 != 0 )
+            {
+                $newWidth = $newWidth - 1;
+            }
+        }
+        $bitrate = '-s ' . $newWidth . 'x' . $convertCommandBlock['Height'];
+        foreach( $convertCommandBlock as $convertCommandItem => $convertCommandItemValue )
+        {
+            if( isset( $convertCommandReplace[$convertCommandItem] ) )
+                $bitrate .= ' ' . $convertCommandReplace[$convertCommandItem] . ' ' . $convertCommandItemValue;
+        }
+        foreach ( $cSettings as $key => $setting )
+        {
+            if ( $key != $pathParts['extension'] )
+            {
+                $src = execCommand( $root, $content, $pathParts, $bitratekey . '.', $key, $filePath, $setting, $bitrate );
+            }
+            else
+            {
+                // file already exists
+                $origFile = $root->xpath( "//source[@original=1]" );
+                if ( count( $origFile ) > 0 )
+                {
+                    $src = $origFile[0];
+                    $content['media']->updateFileInfo( $src );
+                    $content['media']->setStatus( $src, xrowMedia::STATUS_CONVERSION_FINISHED );
+                }
+                $src = execCommand( $root, $content, $pathParts, $bitratekey. '.conv.', $key, $filePath, $setting, $bitrate );
+            }
+            // update mime type
+            $src['mimetype'] = $ini->variable( $key, 'MimeType' );
+        }
+    }
+    return $src;
+}
 
 function execCommand( $root, $content, $pathParts, $file_suffix, $key, $filePath, $setting, $bitrate = '' )
 {
