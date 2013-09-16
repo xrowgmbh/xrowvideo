@@ -8,8 +8,8 @@
 
 class xrowVideoType extends eZBinaryFileType
 {
-	const MAX_FILESIZE_FIELD = 'data_int1';
-	const MAX_FILESIZE_VARIABLE = '_xrowvideo_max_filesize_';
+    const MAX_FILESIZE_FIELD = 'data_int1';
+    const MAX_FILESIZE_VARIABLE = '_xrowvideo_max_filesize_';
 
     const DATA_TYPE_STRING = 'xrowvideo';
 
@@ -50,15 +50,15 @@ class xrowVideoType extends eZBinaryFileType
             {
                 $mustUpload = true;
                 $contentObjectAttribute->setValidationError( ezpI18n::tr( 'kernel/classes/datatypes',
-                		'A valid file is required.' ) );
+                        'A valid file is required.' ) );
                 return eZInputValidator::STATE_INVALID;
             }
             if ( $maxSize > 0 && $binary->fileSize() > $maxSize )
             {
-            	# file size check
-            	$contentObjectAttribute->setValidationError( ezpI18n::tr( 'kernel/classes/datatypes',
-            				'The size of the uploaded file exceeds the maximum upload size: %1 bytes.' ), $maxSize );
-           		return eZInputValidator::STATE_INVALID;
+                # file size check
+                $contentObjectAttribute->setValidationError( ezpI18n::tr( 'kernel/classes/datatypes',
+                            'The size of the uploaded file exceeds the maximum upload size: %1 bytes.' ), $maxSize );
+                   return eZInputValidator::STATE_INVALID;
             }
         }
 
@@ -96,7 +96,6 @@ class xrowVideoType extends eZBinaryFileType
         {
             $result['error'] = self::ERROR_NO_FFMPEG_INSTALLED;
         }
-
         return $result;
     }
 
@@ -129,17 +128,6 @@ class xrowVideoType extends eZBinaryFileType
     function fetchObjectAttributeHTTPInput( $http, $base, $contentObjectAttribute )
     {
         $mObj = new xrowMedia( $contentObjectAttribute );
-        if ( $http->hasPostVariable( $base . "_data_media_width_" . $contentObjectAttribute->attribute( "id" ) ) &&
-             $http->hasPostVariable( $base . "_data_media_height_" . $contentObjectAttribute->attribute( "id" ) ) )
-        {
-            $mObj->settings['width'] = trim( $http->postVariable( $base . "_data_media_width_" . $contentObjectAttribute->attribute( "id" ) ) );
-            $mObj->settings['height'] = trim( $http->postVariable( $base . "_data_media_height_" . $contentObjectAttribute->attribute( "id" ) ) );
-        }
-        else
-        {
-            $mObj->settings['width'] =  $mObj->settings['height'] = '';
-        }
-
         if ( $http->hasPostVariable( $base . "_data_media_is_autoplay_" . $contentObjectAttribute->attribute( "id" ) ) )
         {
             $mObj->settings['autoplay'] = 1;
@@ -166,14 +154,52 @@ class xrowVideoType extends eZBinaryFileType
         {
             $mObj->settings['loop'] = 0;
         }
-
-        # manual update of the media infos
-        if ( $http->hasPostVariable( $base . "_data_media_update_" . $contentObjectAttribute->attribute( "id" ) ) )
+        // if there is a pending item take the published version and override this mObj
+        $pendingAction = false;
+        if( $pendingObj = $mObj->hasPendingAction( true ) )
         {
-            $mObj->updateMediaInfo();
-            $mObj->addPendingAction();
+            $pendingAction = true;
+            $params = explode( '-', $pendingObj->param );
+            $pendingVersion = $params[1];
+            $def = eZContentObjectAttribute::definition();
+            $conditions = array( 'id' => $contentObjectAttribute->attribute( "id" ) );
+            $custom_conds = ' AND ' . $def['name'] . '.data_text LIKE \'% status="' . xrowMedia::STATUS_CONVERSION_FINISHED . '"%\'' . 
+                            ' AND ' . $def['name'] . '.version NOT IN(' . (int)$contentObjectAttribute->Version . ', ' . (int)$pendingVersion . ')';
+            if( isset( $mObj->xml->video ) && isset( $mObj->xml->video->source[0] ) && isset( $mObj->xml->video->source[0]->attributes()->src ) )
+            {
+                $custom_conds .= ' AND ' . $def['name'] . '.data_text LIKE \'% src="' . $mObj->xml->video->source[0]->attributes()->src . '"%\'';
+            }
+            $videosAttributeWithFullXML = eZPersistentObject::fetchObjectList( $def,
+                                                                               null,
+                                                                               $conditions,
+                                                                               array( 'version' => 'desc' ),
+                                                                               array( 'limit' => 1, 'offset' => 0 ),
+                                                                               true,
+                                                                               false,
+                                                                               null,
+                                                                               null,
+                                                                               $custom_conds );
+            if( count( $videosAttributeWithFullXML ) > 0 )
+            {
+                $content = $videosAttributeWithFullXML[0]->content();
+                $binary = $content['binary'];
+                if ( $content && $binary )
+                {
+                    xrowMedia::updateGivenAttributesDataText( array( $contentObjectAttribute ), $content, $binary );
+                }
+            }
+            $mObj = new xrowMedia( $contentObjectAttribute );
         }
 
+        // manual update of the media infos
+        if ( $http->hasPostVariable( $base . "_data_media_update_" . $contentObjectAttribute->attribute( "id" ) ) )
+        {
+            if( $pendingAction === false )
+            {
+                $mObj->updateMediaInfo();
+            }
+            $mObj->addPendingAction();
+        }
         $mObj->setSettings();
         $contentObjectAttribute->setAttribute( 'data_text', $mObj->xml->asXML() );
         $contentObjectAttribute->setContent( $this->objectAttributeContent( $contentObjectAttribute ) );
@@ -283,5 +309,3 @@ class xrowVideoType extends eZBinaryFileType
 }
 
 eZDataType::register( xrowVideoType::DATA_TYPE_STRING, 'xrowVideoType' );
-
-?>
