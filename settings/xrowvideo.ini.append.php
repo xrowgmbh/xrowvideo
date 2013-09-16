@@ -30,6 +30,8 @@ MaxVideoWidth=1920
 
 DefaultVideoForPlayer=360p
 
+#KeepProportion=enabled
+
 UseVideoBitrate=enabled
 ConvertCommandReplace[]
 ConvertCommandReplace[VideoBitrate]=-b:v
@@ -44,43 +46,44 @@ Bitrates[]=234p
 Bitrates[]=216p
 
 [Bitrate_1080p]
-Width=1920
 Height=1080
+# if KeepProportion is enabled Width will not be considered
+Width=1920
 VideoBitrate=7M
 AudioBitrate=192K
 FramesPerSecond=25
 
 [Bitrate_720p]
-Width=1280
 Height=720
+Width=1280
 VideoBitrate=4M
 AudioBitrate=128K
 FramesPerSecond=25
 
 [Bitrate_576p]
-Width=1024
 Height=576
+Width=1024
 VideoBitrate=2.5M
 AudioBitrate=128K
 FramesPerSecond=25
 
 [Bitrate_360p]
-Width=640
 Height=360
+Width=640
 VideoBitrate=1.4M
 AudioBitrate=128K
 FramesPerSecond=25
 
 [Bitrate_234p]
-Width=416
 Height=234
+Width=416
 VideoBitrate=560K
 AudioBitrate=80K
 FramesPerSecond=25
 
 [Bitrate_216p]
-Width=384
 Height=216
+Width=384
 VideoBitrate=360K
 AudioBitrate=80K
 FramesPerSecond=25
