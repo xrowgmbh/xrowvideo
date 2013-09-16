@@ -38,9 +38,10 @@ class xrowMedia
         $this->updateSettings();
     }
 
-    public function getXMLData( $root )
+    public function getXMLData( $root, $original = false )
     {
         $result = array();
+        $nArray = array();
         if ( isset( $this->xml->$root ) )
         {
             foreach( $this->xml->$root->attributes() as $key => $item )
@@ -51,14 +52,24 @@ class xrowMedia
             {
                 $i = 0;
                 # get children which are not the original and have a good status
-                $nArray =  $this->xml->$root->xpath( "//source[@show=1 and @status = " . self::STATUS_CONVERSION_FINISHED . "]" );
-                foreach ( $nArray as $key => $item )
+                if( $original === false )
                 {
-                    foreach ( $item->attributes() as $akey => $aitem )
+                    $nArray =  $this->xml->$root->xpath( "//source[@show=1 and @status = " . self::STATUS_CONVERSION_FINISHED . "]" );
+                }
+                else
+                {
+                    $nArray =  $this->xml->$root->xpath( "//source[@original=1 and @status = " . self::STATUS_CONVERSION_FINISHED . "]" );
+                }
+                if( count( $nArray ) > 0 )
+                {
+                    foreach ( $nArray as $key => $item )
                     {
-                        $result['source'][$i][$akey] = (string) $aitem;
+                        foreach ( $item->attributes() as $akey => $aitem )
+                        {
+                            $result['source'][$i][$akey] = (string) $aitem;
+                        }
+                        $i++;
                     }
-                    $i++;
                 }
             }
         }
@@ -95,17 +106,20 @@ class xrowMedia
         }
     }
 
-    public function hasPendingAction()
+    public function hasPendingAction( $like = false )
     {
         $info = $this->attribute->ID . '-' . $this->attribute->Version;
 
         $cond = array( 'param' => $info,
                        'action' => "xrow_convert_media" );
-
+        if( $like )
+        {
+            $cond['param'] = array( 'like', $this->attribute->ID . '-%' );
+        }
         $obj = eZPendingActions::fetchObject( eZPendingActions::definition(), null, $cond );
         if ( $obj )
         {
-            return true;
+            return $obj;
         }
         else
         {
@@ -143,7 +157,7 @@ class xrowMedia
             }
             if ( isset( $this->xml->audio ) )
             {
-                unset( $this->xml->video );
+                unset( $this->xml->audio );
             }
 
             # new object, get data...
@@ -205,22 +219,24 @@ class xrowMedia
             {
                 $this->xml->video['width'] = $width;
             }
-
             $duration = $mov->getDuration();
             if ( $duration > 0 )
             {
                 $this->xml->video['duration'] = $duration;
             }
-
             $this->xml->video['status'] = self::STATUS_NEEDS_CONVERSION;
 
             if ( !isset( $this->xml->video->source ) )
             {
                 $newSource = $this->xml->video->addChild( 'source' );
+                $newSource['width'] = $width;
+                $newSource['height'] = $height;
+                $newSource['duration'] = $duration;
                 $newSource['original'] = 1;
                 $newSource['show'] = 0;
+                $newSource['src'] = pathinfo( $filePath, PATHINFO_BASENAME );
             }
-            # search the original
+            // search the original
             $result = $this->xml->video->xpath( "//source[@original=1]" );
             if ( count( $result ) > 0 )
             {
@@ -257,6 +273,7 @@ class xrowMedia
             if ( !isset( $this->xml->audio->source ) )
             {
                 $newSource = $this->xml->audio->addChild( 'source' );
+                $newSource['bitrate'] = $mov->getAudioBitRate();
                 $newSource['original'] = 1;
                 $newSource['show'] = 0;
             }
@@ -457,7 +474,6 @@ class xrowMedia
     {
         $content = $this->attribute->content();
         $binary = $content['binary'];
-
         # new object, get data...
         $dirName = pathinfo( $binary->filePath(), PATHINFO_DIRNAME );
 
@@ -486,12 +502,13 @@ class xrowMedia
             $oFileName = pathinfo( $binary->attribute( 'original_filename' ) );
             $nExt = pathinfo( $source['src'], PATHINFO_EXTENSION );
 
-            $source['originalfilename'] =  pathinfo( self::newFileName($oFileName, $nExt ), PATHINFO_BASENAME );
+            $source['originalfilename'] =  pathinfo( self::newFileName( $oFileName, $nExt ), PATHINFO_BASENAME );
 
             if ( isset( $this->xml->video ) )
             {
                 $source['height'] = $mov->getFrameHeight();
                 $source['width'] = $mov->getFrameWidth();
+                //$source['aratio'] = $this->getAspectRatio( $source['width'], $source['height'] );
                 /**
                  * @TODO: videos with different width / height settings are not possible at the moment
                  * ffmpeg cannot read size from webm format
@@ -500,13 +517,16 @@ class xrowMedia
                 {
                     $this->xml->video['height'] = (string) $source['height'];
                 }
-
                 if ( (string) $source['width'] != '' and (string) $source['width'] > 0 )
                 {
                     $this->xml->video['width'] = (string) $source['width'];
                 }
+                $duration = $mov->getDuration();
+                if ( $duration > 0 )
+                {
+                    $this->xml->video['duration'] = $duration;
+                }
             }
-
             $this->saveData();
         }
         else
@@ -514,6 +534,23 @@ class xrowMedia
             eZDebug::writeError( $filePath, 'xrowvideo: filepath not found' );
         }
     }
+    
+    function getAspectRatio( $width, $height )
+    {
+        $widthOrig = $width;
+        $heightOrig = $height;
+        while( $height != 0 )
+        {
+            $remainder = $width % $height;
+            $width = $height;
+            $height = $remainder;
+        }
+        $gcd = abs( $width );
+        $widthOrig = $widthOrig / $gcd;
+        $heightOrig = $heightOrig / $gcd;
+        $ratio = $widthOrig . ":" . $heightOrig;
+        return $ratio;
+    }  
 
     /**
      * Last but not least - delete the stuff
@@ -574,7 +611,6 @@ class xrowMedia
                               'original_filename' => (string) $result[0]['originalfilename'],
                               'filepath' => $dirName . '/' . (string) $result[0]['src'],
                               'mime_type' => (string) $result[0]['mimetype'] );
-                #eZDebug::writeDebug( $res, 'xrowvideo' );
                 return $res;
             }
 
@@ -584,6 +620,52 @@ class xrowMedia
             eZDebug::writeError( $fileName . ' - file not found', 'xrowvideo' );
         }
         return false;
+    }
+    
+    static public function updateGivenAttributesDataText( $givenAttributes, $mediaContent, $binary )
+    {
+        foreach( $givenAttributes as $givenAttribute )
+        {
+            $givenAttributeContent = $givenAttribute->content();
+            $found = false;
+            $givenAttributeContent['media']->xml->video->attributes()->status = self::STATUS_CONVERSION_FINISHED;
+            if( isset( $givenAttributeContent['media']->xml->video->source ) )
+            {
+                if( isset( $givenAttributeContent['media']->xml->video->source[0] ) )
+                {
+                    if( isset( $givenAttributeContent['media']->xml->video->source[0]->attributes()->src ) && 
+                        isset( $givenAttributeContent['media']->xml->video->source[0]->attributes()->src[0] ) )
+                    {
+                        if( (string) $givenAttributeContent['media']->xml->video->source[0]->attributes()->src == $binary->Filename )
+                        {
+                            $found = true;
+                        }
+                    }
+                    else
+                    {
+                        $found = true;
+                    }
+                }
+                // check if the video is exist and has the same name or video is not exist
+                unset( $givenAttributeContent['media']->xml->video->source );
+            }
+            else
+            {
+                $found = true;
+            }
+            if( $found )
+            {
+                foreach( $mediaContent['media']->xml->video->source as $item )
+                {
+                    $xml = $givenAttributeContent['media']->xml->video->addChild( $item->getName() );
+                    foreach( $item->attributes() as $name => $value )
+                    {
+                        $xml->addAttribute( $name, $value );
+                    }
+                }
+                $givenAttributeContent['media']->saveData();
+            }
+        }
     }
 
     const TYPE_VIDEO = 1;
