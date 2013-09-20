@@ -85,43 +85,9 @@ class xrowVideoType extends eZBinaryFileType
                                            $contentObjectAttribute->attribute( "version" ) );
         $result = array();
         $result['binary'] = $binaryFile;
-        $mObj = new xrowMedia( $contentObjectAttribute  );
+        $mObj = new xrowMedia( $contentObjectAttribute );
         $result['settings'] = $mObj->settings;
-        $video = $mObj->getXMLData( 'video' );
-        $video_original = $mObj->getXMLData( 'video', true );
-        // woraround for old bugy video height and width
-        if( $video )
-        {
-            if( $video['width'] && ( ( isset( $video_original['width'] ) && $video['width'] < $video_original['width'] ) ||  ( isset( $video['source'][0]['width'] ) && $video['width'] < $video['source'][0]['width'] ) ) )
-            {
-                $filePath = $result['binary']->filePath();
-                $file = eZClusterFileHandler::instance(  $filePath );
-                $file->fetch();
-                if ( $filePath{0} != '/' )
-                {
-                    $filePath = str_replace( array( "/", "\\" ), array( DIRECTORY_SEPARATOR, DIRECTORY_SEPARATOR ), $filePath );
-                }
-                $mov = @new ffmpeg_movie( $filePath, false );
-                if ( $mov instanceof ffmpeg_movie )
-                {
-                    $height = $mov->getFrameHeight();
-                    $width = $mov->getFrameWidth();
-                    $content = $contentObjectAttribute->content();
-                    if( $height > 0 )
-                    {
-                        $video['height'] = $height;
-                        $content['media']->xml->video['height'] = $height;
-                    }
-                    if( $width > 0 )
-                    {
-                        $video['width'] = $width;
-                        $content['media']->xml->video['width'] = $width;
-                    }
-                    $content['media']->saveData();
-                }
-            }
-        }
-        $result['video'] = $video;
+        $result['video'] = $mObj->getXMLData( 'video' );
         $result['audio'] = $mObj->getXMLData( 'audio' );
         $result['media'] = $mObj;
         $result['pending'] = $mObj->hasPendingAction();
