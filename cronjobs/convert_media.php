@@ -88,7 +88,9 @@ while( true )
                             $originalFileAttributes = $content['media']->getXMLData( 'video', true );
                             $bitrates = $ini->variable( 'xrowVideoSettings', 'Bitrates' );
                             $convertFile = false;
+                            $convertFileOriginal = false;
                             $smallestBitrate = end( $bitrates );
+                            $counter = 0;
                             foreach( $bitrates as $bitratekey )
                             {
                                 if( isset( $ini->BlockValues['Bitrate_' . $bitratekey] ) )
@@ -97,6 +99,16 @@ while( true )
                                     if( $convertCommandBlock['Height'] <= $originalFileAttributes['height'] )
                                     {
                                         $convertFile = true;
+                                        if( $convertCommandBlock['Height'] < $originalFileAttributes['height'] && $convertFileOriginal === false )
+                                        {
+                                            $convertFileOriginal = true;
+                                            $cli->output( '' );
+                                            $cli->output( '--------------------------------------------------------------' );
+                                            $cli->output( 'Converting additionally to ORIGINAL HEIGHT ' . $originalFileAttributes['height'] . '.' );
+                                            $cli->output( '---------------------------------------------------------------' );
+                                            $cli->output( '' );
+                                            $src = convertFile( $originalFileAttributes['height'] . 'p', $content, $originalFileAttributes, $root, $pathParts, $cSettings, $filePath, $convertCommandBlock, $ini, true );
+                                        }
                                         $cli->output( '' );
                                         $cli->output( '--------------------------------------------------------------' );
                                         $cli->output( 'Converting to ' . $bitratekey . '.' );
@@ -108,7 +120,7 @@ while( true )
                                     {
                                         $cli->output( '' );
                                         $cli->output( '---------------------------------------------------------------' );
-                                        $cli->output( 'Not converting to ' . $bitratekey . ' because original file is smaller.' );
+                                        $cli->output( 'Not converting to ' . $bitratekey . ' because original file (height: ' . $originalFileAttributes['height'] . ') is smaller.' );
                                         $cli->output( '---------------------------------------------------------------' );
                                         $cli->output( '' );
                                     }
@@ -195,26 +207,46 @@ while( true )
 $cli->output( "Done" );
 $cli->output( "" );
 
-function convertFile( $bitratekey, $content, $file_attributes, $root, $pathParts, $cSettings, $filePath, $convertCommandBlock, $ini )
+function convertFile( $bitratekey, $content, $file_attributes, $root, $pathParts, $cSettings, $filePath, $convertCommandBlock, $ini, $originalHeight = false )
 {
     if( $ini->hasVariable( 'xrowVideoSettings', 'ConvertCommandReplace' ) )
     {
         $convertCommandReplace = $ini->variable( 'xrowVideoSettings', 'ConvertCommandReplace' );
-        $keepProportion = $ini->variable( 'xrowVideoSettings', 'KeepProportion' );
-        if( $keepProportion != 'enabled' )
+        $keepProportion = '';
+        if( $ini->hasVariable( 'xrowVideoSettings', 'KeepProportion' ) )
         {
-            $newWidth = $convertCommandBlock['Width'];
+            $keepProportion = $ini->variable( 'xrowVideoSettings', 'KeepProportion' );
+        }
+        if( $originalHeight )
+        {
+            $height = $file_attributes['height'];
+            if( $keepProportion != 'enabled' )
+            {
+                $width = round( $file_attributes['height'] * 16 / 9 );
+            }
+            else
+            {
+                $width = $file_attributes['width'];
+            }
         }
         else
         {
-            $newWidth = round( $file_attributes['width'] * $convertCommandBlock['Height'] / $file_attributes['height'] );
-            // check if new height is divisible by 2 because the libx264 returns an error: [libx264 @ 0x97b660] height not divisible by 2 (384x241)
-            if( $newWidth %2 != 0 )
+            $height = $convertCommandBlock['Height'];
+            if( $keepProportion != 'enabled' )
             {
-                $newWidth = $newWidth - 1;
+                $width = $convertCommandBlock['Width'];
+            }
+            else
+            {
+                $width = round( $file_attributes['width'] * $convertCommandBlock['Height'] / $file_attributes['height'] );
             }
         }
-        $bitrate = '-s ' . $newWidth . 'x' . $convertCommandBlock['Height'];
+        // check if new height is divisible by 2 because the libx264 returns an error: [libx264 @ 0x97b660] height not divisible by 2 (384x241)
+        if( $width %2 != 0 )
+        {
+            $width = $width - 1;
+        }
+        $bitrate = '-s ' . $width . 'x' . $height;
         foreach( $convertCommandBlock as $convertCommandItem => $convertCommandItemValue )
         {
             if( isset( $convertCommandReplace[$convertCommandItem] ) )
