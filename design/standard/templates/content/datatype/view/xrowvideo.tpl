@@ -37,8 +37,6 @@
     {else}
         {def $objects = $media.source}
     {/if}
-    {* set for flash fallback only width and height *}
-    {set $fallback_attributes = $media_attributes}
     
     {if and( $fallback_object|not(), $fallback_object_tmp )}
         {set $fallback_object = $fallback_object_tmp}
@@ -66,6 +64,8 @@
         {set $media_attributes = concat( $media_attributes, ' height="', $default_height, '"' )}
     {/if}
 
+    {* set for flash fallback only width and height *}
+    {set $fallback_attributes = $media_attributes}
     {set $control_attributes = concat( ' ', cond( $attribute.content.settings.controls, ' controls="controls"', '' ) )}
     {set $control_attributes = concat( $control_attributes, ' ', cond( $attribute.content.settings.autoplay, ' autoplay', '' ) )}
     {set $control_attributes = concat( $control_attributes, ' ', cond( $attribute.content.settings.loop, ' loop', '' ) )}
