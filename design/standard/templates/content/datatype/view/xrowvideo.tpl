@@ -88,7 +88,7 @@
     {ezscript_require( 'xrowvideo.js' )}
     {/run-once}
 
-    <div class="leanback-player-{$media_tag}"{if $media_tag|eq( 'audio' )}{$audio_width}{/if}>
+    <div class="leanback-player-{$media_tag}"{if $media_tag|eq( 'audio' )}{$audio_width}{/if} {if $media_tag|eq( 'video' )}style="width:{$width}px;height:{$height}px;"{/if}>
         <!--[if gt IE 8]>
         <{$media_tag} {if $media_tag|eq( 'video' )}{$media_attributes}{else}{$control_attributes}{/if}{if $image_url|ne( '' )} poster="{$image_url}"{/if} data-objectid="{$attribute.contentobject_id}">
         <![endif]-->
@@ -138,16 +138,6 @@
                 {if $media_tag|eq( 'video' )}
                     <img src="{$image_url}" {$fallback_attributes} alt="Poster Image" title="No HTML5-Video playback capabilities found. Please download the video(s) below." />
                 {/if}
-                <div class="download-info">
-                    <strong>Download {if $media_tag|eq( 'video' )}Video{else}Audio{/if}:</strong>
-                    {foreach $objects as $key => $item}
-                    {def $name_parts = $item.originalfilename|explode( '.' )
-                         $last_element = $name_parts|count()|dec()
-                         $file_suffix = $name_parts.$last_element}
-                    <a href={concat( 'xrowvideo/download/', $attribute.contentobject_id, '/', $attribute.id,'/', $attribute.version , '/', $item.src|rawurlencode )|ezurl()}><nobr>{$file_suffix}{if is_set( $item.width )} ({$item.width} x {$item.height}){/if}</nobr></a>{if $key|lt( $objects|count()|dec() )},{/if}
-                    {undef $name_parts $last_element $file_suffix}
-                    {/foreach}
-                </div>
             </div>
         <!--[if gt IE 8]>
            </{$media_tag}>
@@ -159,6 +149,60 @@
            </{$media_tag}>
         <!--<![endif]--> 
     </div>
+    <div class="extra-flash-video" style="display:none;width:{$width}px;height:{$height}px;">
+        {* Fallback Flash *}
+        {def $path_fallback = concat( 'xrowvideo/download/', $attribute.contentobject_id, '/', $attribute.id, '/', $attribute.version, '/', $fallback_object.src|rawurlencode )|ezurl( 'no', 'full' )}
+            <object class="leanback-player-flash-fallback extra-flash-video" {$fallback_attributes} type="application/x-shockwave-flash" data="http://releases.flowplayer.org/swf/flowplayer.swf">
+               <param name="movie" value="http://releases.flowplayer.org/swf/flowplayer.swf" />
+               <param name="allowFullScreen" value="true" />
+               <param name="wmode" value="transparent" />
+               <param name="bgcolor" value="#000000" />
+               <param name="flashVars" value="config={ldelim}'clip':{ldelim}'url':'{$path_fallback}','autoPlay':{cond( $attribute.content.settings.autoplay, 'true', 'false')},'autobuffering':true{rdelim}{rdelim}" />
+            </object>
+        {* Fallback HTML *}
+        <div class="leanback-player-html-fallback" {$fallback_attributes}>
+            {if $media_tag|eq( 'video' )}
+                <img src="{$image_url}" {$fallback_attributes} alt="Poster Image" title="No HTML5-Video playback capabilities found. Please download the video(s) below." />
+            {/if}
+        </div>
+     </div>
+    {if $media_tag|eq( 'video' )}
+        {literal}
+            <script type="text/javascript">
+                 function supports_video() { return !!document.createElement('video').canPlayType; }
+                 if (supports_video()) 
+                 {
+                     document.write('<div class="change-video"><p><span class="flash-version">Flash-Version</span><b class="separator-video"> | </b><span class="video-download">Video-Download</span></p></div>');
+                 } else {
+                     document.write('<div class="change-video"><p><span class="video-download">Video-Download</span></p></div>');
+                 }
+            </script>
+        {/literal}
+    
+        <div class="download-info" style="display:none;clear:left;">
+             <strong>Download Video:</strong>
+             {foreach $objects as $key => $item}
+                {def $name_parts = $item.originalfilename|explode( '.' )
+                    $last_element = $name_parts|count()|dec()
+                    $file_suffix = $name_parts.$last_element}
+                <a href={concat( 'xrowvideo/download/', $attribute.contentobject_id, '/', $attribute.id,'/', $attribute.version , '/', $item.src|rawurlencode )|ezurl()}><nobr>{$file_suffix}{if is_set( $item.width )} ({$item.width} x {$item.height}){/if}</nobr></a>{if $key|lt( $objects|count()|dec() )},{/if}
+                {undef $name_parts $last_element $file_suffix}
+             {/foreach}
+        </div>    
+    {else}
+        <!--[if gte IE 8]>
+        <div class="download-info">
+            <strong>Download Audio:</strong>
+            {foreach $objects as $key => $item}
+                {def $name_parts = $item.originalfilename|explode( '.' )
+                    $last_element = $name_parts|count()|dec()
+                    $file_suffix = $name_parts.$last_element}
+                <a href={concat( 'xrowvideo/download/', $attribute.contentobject_id, '/', $attribute.id,'/', $attribute.version , '/', $item.src|rawurlencode )|ezurl()}><nobr>{$file_suffix}{if is_set( $item.width )} ({$item.width} x {$item.height}){/if}</nobr></a>{if $key|lt( $objects|count()|dec() )},{/if}
+                {undef $name_parts $last_element $file_suffix}
+            {/foreach}
+        </div>
+        <![endif]-->
+    {/if}
 {else}
     {if $attribute.has_content|not()}
         <p>{'There is no file.'|i18n( 'design/standard/content/datatype' )}</p>

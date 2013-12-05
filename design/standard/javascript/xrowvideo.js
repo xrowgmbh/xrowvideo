@@ -6,3 +6,33 @@ LBP.options = {
     defaultLanguage: 'de',
     hideControls: false
 };
+
+/*Feature #5636*/
+$(document).ready(function(){
+   
+    $('.video-download').bind('click', function()
+    {
+           $('.download-info').toggle();
+           $('.download-info').css("float","left");
+           $('.download-info').css("cursor","hand");
+    });
+    
+    $('.flash-version').bind('click', function()
+    {
+          $('.leanback-player-video').remove();
+          $('.extra-flash-video').css("display","block");
+          $('.flash-version').remove();
+          $('.separator-video').remove();
+    });
+    
+    var bro=$.browser;
+    var binfo="";
+    if(bro.msie) {binfo="Microsoft Internet Explorer";}
+    if(bro.mozilla) {binfo="Mozilla Firefox";}
+    if(bro.safari) {binfo="Apple Safari";}
+    if(bro.opera) {binfo="Opera";}
+    if(binfo == "Microsoft Internet Explorer")
+    {
+        $('.extra-flash-video').attr("classid","clsid:D27CDB6E-AE6D-11cf-96B8-444553540000");
+    }
+});

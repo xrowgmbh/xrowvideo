@@ -35,10 +35,16 @@ body.h5_lb_iframe {
     /* fix: prevent button to be focused on Android */
     -webkit-tap-highlight-color: rgba(0,0,0,0);
 }
+/*Feature #5636*/
+.change-video{float:left;}
+.change-video p>span{color:#005798;cursor:pointer;text-decoration:underline;}
+.change-video p{float:left;}
+
 .h5_lb_player {cursor: pointer; direction: ltr;}
 .h5_lb_player .h5_lb_video {background: #000; cursor: pointer; z-index: 1000; outline: 0;}
 .h5_lb_player .h5_lb_audio {cursor: pointer; outline: 0;}
 .h5_lb_player audio {display: none !important; height: 0 !important;}
+
 .h5_lb_smallscreen {position: relative; margin: auto; text-align: center;}
 .h5_lb_fullscreen {position: fixed !important; top: 0; left: 0; margin: auto; text-align: center; border: 0; background: #000; z-index: 9999;}
 .h5_lb_fullscreen .h5_lb_video {border: 0;}
