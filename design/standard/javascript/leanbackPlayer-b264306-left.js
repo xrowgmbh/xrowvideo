@@ -1,15 +1,10 @@
 /**
- * Version: 0.8.1.94b4 - LeanBack Player
- * Date: 2013-12-04
+ * Version: 0.8.0.93 - LeanBack Player
+ * Date: 2012-03-05
  *
- * This Software is part of LeanBack Player [HTML5 Media Player UI] by Kapelan Medien GmbH
+ * This Software is part of LeanBack Player [HTML5 Media Player UI] by Ronny Mennerich
  * Copyright (c) 2010-2012 Ronny Mennerich <contact@leanbackplayer.com>
- * Copyright (c) 2012-2013 Kapelan Medien GmbH <contact@leanbackplayer.com>
- *
- * This version is not for private or commercial use!
- * You only have permission to use it in a testing environment.
  */
-"use strict"
 ;(function(window, undefined) {
 var document = window.document, navigator = window.navigator, location = window.location, ua$ = navigator.userAgent;
 /**---------------------------------------------------------------*/
@@ -18,7 +13,7 @@ var document = window.document, navigator = window.navigator, location = window.
 /* PLAYER */
 var LBP = function(o, v, h5o) {
 	/* vars: default player version */
-	this.version = "0.8.1.94b4";
+	this.version = "0.8.0.93";
 
 	/* var: default player options */
 	this.options = {
@@ -64,8 +59,6 @@ var LBP = function(o, v, h5o) {
 		seekSkipPerc: 10,
 		/* if you want to show an embed-code option within the player (experimental) */
 		showEmbedCode: false,
-		/* check source-extensions on init */
-		checkExtensions: false,
 		/* if different source qualities available, show controls element to change between them */
 		showSources: false,
 		/* if browser supports playbackrate, show controls element */
@@ -104,7 +97,6 @@ var LBP = function(o, v, h5o) {
 		/* vars: browser & device checks */
 		isBrowserLang: LBP.getBrowserLang(),
 		isIE: (LBP.isBrowser === "msie") ? true : false,
-		isSafari: (LBP.isBrowser === "safari" && !LBP.isMobile) ? true : false,
 		/* vars: object to fix (pre)loading/buffering of sources */
 		fixLoadingSource: {},
 		initSources: {},
@@ -145,11 +137,7 @@ var LBP = function(o, v, h5o) {
 		/* is CORS IFrame */
 		isCorsIframe: false,
 		/* CORS IFrame size */
-		bsXY: false,
-		/* Safari fix for Source-Switching */
-		fakeSafariSwitch: false,
-		/* DblClick on video element */
-		vidDblClick: false
+		bsXY: false
 	};
 	LBP.mergeObjs(this.vars, v);
 
@@ -236,7 +224,6 @@ LBP.prototype.initializeKeys = function() {
 /* fct: initialize audio-player */
 LBP.prototype.initializeAPlayer = function() {
 	var vid = this.options.vid, pid = this.options.pid;
-
 	/* do: create vars and values if undefined */
 	if(typeof(this.vars.buffering) === "undefined") {this.vars.buffering = {proc: null, moveProc: null, end: [], endChanged: 0, storeTime: 0};}
 	/* do: overwrite controls set by user */
@@ -300,9 +287,9 @@ LBP.prototype.initializeVPlayer = function() {
 	else {this.options.focusFirstOnInit = false;}
 };
 /* fct: initialize controls */
-LBP.prototype.initializeControls = function(b) {
+LBP.prototype.initializeControls = function() {
 	var vid = this.options.vid, pid = this.options.pid, pcw = 0;
-	
+
 	/* do: create vars and values if undefined */
 	if(typeof(this.vars.showControls) === "undefined") {this.vars.showControls = true;}
 	if(typeof(this.vars.hasEvents) === "undefined") {this.vars.hasEvents = false;}
@@ -313,7 +300,7 @@ LBP.prototype.initializeControls = function(b) {
 	if(typeof(this.vars.domEvents) === "undefined") {this.vars.domEvents = [];}
 	if(typeof(this.vars.setWithControls) === "undefined") {this.vars.setWithControls = [];}
 	if(typeof(this.vars.mouseAction) === "undefined") {this.vars.mouseAction = true;}
-	if(typeof(this.vars.seeking) === "undefined") {this.vars.seeking = {playing: false, subs: null};}
+	if(typeof(this.vars.seeking) === "undefined") {this.vars.seeking = {playing: false, subs: !this.vars.hideSubtitle};}
 	if(typeof(this.vars.volumeSlide) === "undefined") {this.vars.volumeSlide = false;}
 	if(typeof(LBP.domEventsAdded) === "undefined") {LBP.domEventsAdded = false;}
 
@@ -326,7 +313,7 @@ LBP.prototype.initializeControls = function(b) {
 		this.vars.hasEvents = true;
 	}
 	/* do: do before controls added */
-	if(!this.vars.initialized || this.vars.initialize.length > 0) {
+	if(!this.vars.initialized) {
 		/* do: check if content to be initialized */
 		for(var i=0, il=this.vars.initialize.length; i<il; i++) {
 			/* do: create function name to call */
@@ -342,9 +329,6 @@ LBP.prototype.initializeControls = function(b) {
 
 	/* do: add information tab to controls */
 	if(!LBP.inArray(this.options.defaultControls, "Info")) {this.options.defaultControls.push("Info");}
-	
-	/* do: add information tab to controls */
-	if(this.vars.videoPlayer && !LBP.inArray(this.options.controlsExtra, "LBPLogo")) {this.options.controlsExtra.push("LBPLogo");}
 
 	/* do: if no controls added */
 	if(!this.vars.hasControls) {
@@ -368,7 +352,6 @@ LBP.prototype.initializeControls = function(b) {
 		/* do: get all control bar childs cbc to calculate controls width cbw */
 		var cbc = LBP.$(vid+"_controls").children, cbw = 0;
 		for(var i=0; i<cbc.length; i++) {cbw += cbc[i].offsetWidth;}
-
 		return cbw;
 	};
 
@@ -390,17 +373,7 @@ LBP.prototype.initializeControls = function(b) {
 	};
 
 	if(this.vars.videoPlayer) {
-		if(typeof b !== 'undefined' || !this.vars.fullscreen) {
-			var vw = (LBP.$(vid).offsetWidth-parseInt(LBP.$(vid).offsetWidth - LBP.getElemStyle(vid, "width"), 10)), vh = (LBP.$(vid).offsetHeight-parseInt(LBP.$(vid).offsetHeight - LBP.getElemStyle(vid, "height"), 10))
-			/* do: set CSS style of parent element */
-			LBP.setCssStyle(pid, ["width", "height"], [vw+"px", vh+"px"]);
-			/* do: set CSS style of poster position */
-			if(typeof this.vars.poster !== 'undefined') {LBP.setCssStyle(this.vars.poster, ["width", "height"], [vw+"px", vh+"px"]);}
-			/* do: show controls bar */
-			LBP.removeCssClass(vid+"_progress_control", "elem_visibility_hidden");
-		}
-		
-		var bsXY = (!!this.vars.bsXY && this.vars.isCorsIframe)?this.vars.bsXY:LBP.getBrowserSizeXY(this.vars.isIframe), w = ((this.vars.fullscreen) ? bsXY.width : LBP.$(vid).offsetWidth), b = parseInt(LBP.$(vid).offsetWidth - LBP.getElemStyle(vid, "width"), 10);
+		var bsXY = (!!this.vars.bsXY && this.vars.isCorsIframe)?this.vars.bsXY:LBP.getBrowserSizeXY(), w = ((this.vars.fullscreen) ? bsXY.width : LBP.$(vid).offsetWidth), b = parseInt(LBP.$(vid).offsetWidth - LBP.getElemStyle(vid, "width"), 10);
 
 		/* do: show controls to calculate */
 		LBP.removeCssClass(vid+"_controls", "elem_visibility_hidden");
@@ -435,20 +408,11 @@ LBP.prototype.initializeControls = function(b) {
 		}
 	}
 
-	if(pcw <= 20) {
-		/* do: show controls bar */
-		LBP.addCssClass(vid+"_progress_control", "elem_visibility_hidden");
-	}
-	
 	/* do: calculate progress control element */
 	LBP.setCssStyle(vid+"_progress_control", "width", pcw+"px");
 	/* do: calculate progress-seeking and -loading bar */
 	LBP.setCssStyle(vid+"_progress_bar_bg", "width", parseInt(LBP.$(vid+"_progress_control").offsetWidth - LBP.getElemMarginWidth(vid+"_progress_bar_bg").left - LBP.getElemMarginWidth(vid+"_progress_bar_bg").right, 10)+"px");
 	LBP.setCssStyle(vid+"_progress_bar_time", "width", LBP.getElemStyle(vid+"_progress_bar_bg", "width")+"px");
-	
-	if(this.vars.stoped && this.vars.isCorsIframe) {
-		LBP.setCssStyle(vid+"_progress_bar_bg", "width", parseInt(LBP.$(vid+"_progress_control").offsetWidth - LBP.getElemMarginWidth(vid+"_progress_bar_bg").left - LBP.getElemMarginWidth(vid+"_progress_bar_bg").right, 10)+"px");
-	}
 
 	/* do: if start in fullscreen is set */
 	if(this.vars.videoPlayer && this.options.autoFullscreen && LBP.playerFocused === null) {
@@ -469,8 +433,8 @@ LBP.prototype.initializeControls = function(b) {
 		this.vars.afterInitialized = true;
 	}
 
-	/* do: hide default controls on iPad/iPhone */
-	if(LBP.isIPad || LBP.isIPhone) {this.html5Obj.controls = false;}
+	/* do: hide default controls on iPad */
+	if(LBP.isIPad) {this.html5Obj.controls = false;}
 
 	/* do: hide controls after initialization */
 	if(LBP.inArray(this.options.controlsExtra, "BigPlay")) {this.setControls(false);}
@@ -483,7 +447,7 @@ LBP.prototype.addControlsEvents = function(vid, pid) {
 			(function(e) {LBP.addEvent(p.html5Obj, e, function() {LBP.log(Date()+": "+e, "info");});}(ev[i]));
 		}
 		/* do: trigger if media element and parent container exists, else remove this */
-		var removed = function(evt) {
+		var removed = function() {
 			if(p && (!LBP.$(pid) || !LBP.$(vid)) && _LBP_Player.indexOf(p) !== -1) {
 				/* do: remove dom events to avoid problems */
 				for(var j=0, cel=p.vars.domEvents.length; j<cel; j++) {var e = p.vars.domEvents[j]; LBP.removeEvent(document, e.e, e.f);}
@@ -492,16 +456,10 @@ LBP.prototype.addControlsEvents = function(vid, pid) {
 				LBP.mergeObjs(p.html5Obj, {src: ""}); try{p.html5Obj.load();} catch(ex2) {} _LBP_Player.splice(_LBP_Player.indexOf(p), 1); p = null;
 			}
 		};
-		/* do: create dom events to be added */
+		/* do: create dom events to be added for video */
 		var d = {};
 		d = {e: "DOMNodeRemoved", f: removed}; p.vars.domEvents.push(d); LBP.addEvent(document, d.e, d.f);
 		d = {e: "DOMNodeInserted", f: removed}; p.vars.domEvents.push(d); LBP.addEvent(document, d.e, d.f);
-		
-		/* do: add mozilla fullscreenchange event to go to small screen using the ESC-key */
-		d = {e: "mozfullscreenchange", f: function(e) {
-			if(!document.mozFullScreen && !(document.mozFullScreenElement||false) && p.vars.fullscreen) {p.setScreen(false);}
-		}};
-		p.vars.domEvents.push(d); LBP.addEvent(document, d.e, d.f);
 
 		/* do: add html5 object events */
 		var e = {};
@@ -520,7 +478,6 @@ LBP.prototype.addControlsEvents = function(vid, pid) {
 		p.vars.controlsEvents.push(e); LBP.addEvent(p.html5Obj, e.e, e.f);
 		/* do: add event because of Safari issue on source switching */
 		e = {e: "timeupdate", f: function() {
-			p.setSpinner(false);
 			/* do: innerFct to check if content format is number */
 			var isNumber = function(n) {return !isNaN(parseFloat(n)) && isFinite(n);}
 			/* do: if source was switched and time (event) isn't yet currentTime we need to seek again (mainly a bug in Safari) */
@@ -531,12 +488,8 @@ LBP.prototype.addControlsEvents = function(vid, pid) {
 
 		/* do: add html5 "on" attributes - prevent "onmousemove" on mobile or touch devices */
 		if(!LBP.isMobile) {LBP.mergeObjs(p.html5Obj, {onmousemove: function() {if(LBP.$(vid).focused){p.setControlsTask();}}});}
-		e = {id: "vidClick", e: "click", f: function(e) {
-			window.setTimeout(function() {if(LBP.isMobile && !p.vars.showControls) {p.setControlsTask(); return;} if(!p.vars.vidDblClick) {p.onPlay();} p.setControlsTask();}, 220);
-		}};
-		p.vars.controlsEvents.push(e); LBP.addEvent(p.html5Obj, e.e, e.f);
-		e = {id: "vidDblClick", e: "dblclick", f: function(ev) {ev.preventDefault(); ev.stopPropagation(); p.vars.vidDblClick = true; p.setScreen(!p.vars.fullscreen); window.setTimeout(function() {p.vars.vidDblClick = false;}, 400);}};
-		p.vars.controlsEvents.push(e); LBP.addEvent(p.html5Obj, e.e, e.f);
+		LBP.mergeObjs(p.html5Obj, {onclick: function() {if(LBP.isMobile && !p.vars.showControls) {p.setControlsTask(); return;} p.onPlay(); p.setControlsTask();}});
+		LBP.fixTouch(p.html5Obj);
 	}(this));
 };
 LBP.prototype.addControlsElements = function(vid, pid) {
@@ -569,6 +522,7 @@ LBP.prototype.addControlsElements = function(vid, pid) {
 		(function(p) {
 			/* do: add controls "on" attributes */
 			LBP.mergeObjs(vid+"_controls", {onmouseover: function() {window.clearInterval(p.vars.mouseMoveProc);}, onmousemove: function() {window.clearInterval(p.vars.mouseMoveProc);}, onmouseout: function() {p.setControlsTask();}});
+			LBP.fixTouch(vid+"_controls");
 		}(this));
 	}
 };
@@ -593,7 +547,6 @@ LBP.prototype.renewControlsElements = function() {
 
 	/* do: reset controls vars and reinitialize them */
 	this.vars.controlsEvents = [];
-	this.vars.hasEvents = false;
 	this.vars.hasControls = false;
 	this.vars.afterInitialized = false;
 	this.vars.loaded = 0;
@@ -630,7 +583,7 @@ LBP.prototype.setControls = function(b) {
 /* fct: reset controls to redraw */
 LBP.prototype.resetControls = function() {
 	var vid = this.options.vid, pid = this.options.pid, t, show = true;
-	
+
 	/* do: show controls to get width of elements */
 	window.clearInterval(this.vars.mouseMoveProc);
 
@@ -721,7 +674,7 @@ LBP.prototype.addPlayControl = function(vid, pid) {
 
 		/* do: add html5 object events */
 		var e = {};
-		e = {e: "play", f: function() {if(LBP.inArray(p.options.defaultControls, "Pause") && !p.vars.fakeSafariSwitch) {p.setPlayControl(false);}}};
+		e = {e: "play", f: function() {if(LBP.inArray(p.options.defaultControls, "Pause")) {p.setPlayControl(false);}}};
 		p.vars.controlsEvents.push(e); LBP.addEvent(p.html5Obj, e.e, e.f);
 		e = {e: "pause", f: function() {if(LBP.inArray(p.options.defaultControls, "Play")) {p.setPlayControl(true);}}};
 		p.vars.controlsEvents.push(e); LBP.addEvent(p.html5Obj, e.e, e.f);
@@ -742,7 +695,7 @@ LBP.prototype.addPauseControl = function(vid, pid) {
 
 		/* do: add html5 object events */
 		var e = {};
-		e = {e: "play", f: function() {if(LBP.inArray(p.options.defaultControls, "Pause") && !p.vars.fakeSafariSwitch) {p.setPauseControl(true);}}};
+		e = {e: "play", f: function() {if(LBP.inArray(p.options.defaultControls, "Pause")) {p.setPauseControl(true);}}};
 		p.vars.controlsEvents.push(e); LBP.addEvent(p.html5Obj, e.e, e.f);
 		e = {e: "pause", f: function() {if(LBP.inArray(p.options.defaultControls, "Pause")) {p.setPauseControl(false);}}};
 		p.vars.controlsEvents.push(e); LBP.addEvent(p.html5Obj, e.e, e.f);
@@ -750,8 +703,6 @@ LBP.prototype.addPauseControl = function(vid, pid) {
 };
 /* fct: add stop control */
 LBP.prototype.addStopControl = function(vid, pid) {
-	// if(LBP.isAndroid) {return;}
-
 	var elId = vid+"_stop_control";
 
 	/* do: create stop button */
@@ -777,7 +728,7 @@ LBP.prototype.addProgressControl = function(vid, pid) {
 	(function(p) {
 		/* do: add "on" attributes */
 		LBP.mergeObjs(elId, {
-			onclick: function(e) {p.onSeeking(e);},
+			onclick: function(e) {if(typeof(p.vars.subs) === "undefined") {p.vars.seeking.subs = !p.vars.hideSubtitle;} p.onSeeking(e);},
 			onmouseover: function(e) {window.clearInterval(p.vars.buffering.moveProc); p.vars.buffering.moveProc = null; p.getProgressPosition(e);},
 			onmousemove: function(e) {window.clearInterval(p.vars.buffering.moveProc); p.vars.buffering.moveProc = null; p.getProgressPosition(e);},
 			onmouseout: function() {p.vars.buffering.moveProc = window.setInterval(function() {
@@ -785,8 +736,8 @@ LBP.prototype.addProgressControl = function(vid, pid) {
 				LBP.hideEl(celId+"_time");
 			}, 200);}
 		});
-		
-		// LBP.addEvent(elId, "click", function(e) {p.onSeeking(e);});
+
+		LBP.fixTouch(elId);
 
 		/* do: add html5 object events */
 		var e = {};
@@ -900,9 +851,8 @@ LBP.prototype.addSubtitlesControl = function(vid, pid) {
 
 		/* do: create el */
 		LBP.createHTMLEl(pid, "div", {id: elSub, className: "h5_lb_subtitles"});
-		(function(p) {LBP.createHTMLEl(vid+"_controls", "div", {id: elId, className: "h5_lb_subtitle_control", title: p.getTranslation("Subtitle_title"), onclick: function() {if(p.vars.stoped) {return;} if(LBP.$(elId+"_inner").shown) {LBP.hideEl(vid+"_subtitle_nav");} else {LBP.showEl(vid+"_subtitle_nav");} LBP.$(elId+"_inner").shown = !LBP.$(elId+"_inner").shown;}});}(this));
+		LBP.createHTMLEl(vid+"_controls", "div", {id: elId, className: "h5_lb_subtitle_control", title: this.getTranslation("Subtitle_title")});
 		LBP.createHTMLEl(elId, "div", {id: elId+"_inner", innerHTML: this.getTranslation("Subtitle_inner")});
-		LBP.mergeObjs(elId+"_inner", {shown: false});
 
 		/* do: handle controls-below for subtitles */
 		var subsControlsBelow = function(p, el) {
@@ -924,7 +874,7 @@ LBP.prototype.addSubtitlesControl = function(vid, pid) {
 
 			/* do: add html5 object events */
 			var e = {};
-			e = {e: "seeked", f: function() {/*if(LBP.isIPad || LBP.isIPhone) {return;}*/ p.setSubtitle(p.vars.seeking.subs);}}; // seems to make the subtitle set to false on iPad
+			e = {e: "seeked", f: function() {if(LBP.isIPad) {return;} p.setSubtitle(p.vars.seeking.subs);}}; // seems to make the subtitle set to false on iPad
 			p.vars.controlsEvents.push(e); LBP.addEvent(p.html5Obj, e.e, e.f);
 			e = {e: "ended", f: function() {p.vars.activeSubId = -1; if(!p.vars.fixLoop) {p.setSubtitle(false);}}};
 			p.vars.controlsEvents.push(e); LBP.addEvent(p.html5Obj, e.e, e.f);
@@ -954,7 +904,7 @@ LBP.prototype.addSourcesControl = function(vid, pid) {
 
 		/* do: create el */
 		var elId = vid+"_sources_control";
-		LBP.createHTMLEl(vid+"_controls", "div", {id: elId, className: "h5_lb_sources_control elem_visibility_hidden", title: this.getTranslation("Sources_title")});
+		LBP.createHTMLEl(vid+"_controls", "div", {id: elId, className: "h5_lb_sources_control", title: this.getTranslation("Sources_title")});
 		LBP.createHTMLEl(elId, "div", {id: elId+"_inner", innerHTML: this.getTranslation("Sources_inner")});
 
 		/* do: init sources if available */
@@ -992,9 +942,9 @@ LBP.prototype.addInfoControl = function(vid, pid) {
 	}
 	exts_content += "</ul>";
 
-	var plant=document.getElementById(vid);
-	var content_id=plant.getAttribute('data-objectid');
-	var content_default = this.getTranslation("Info_content_default_player", [this.options.infoUrl, this.version])+" &nbsp;&nbsp;&copy; Copyright 2010-2013, All Rights Reserved.";
+    var plant = document.getElementById(vid);
+    var content_id=plant.getAttribute('data-objectid');
+	var content_default = this.getTranslation("Info_content_default_player", [this.options.infoUrl, this.version])+" &nbsp;&nbsp;&copy; Copyright 2010-2012, All Rights Reserved.";
 	var content_embed = "<iframe width=\"400\" height=\"240\" src=" + "\"http:\/\/" + document.domain + "\/xrowvideo\/embed\/"+ content_id +"\""+ "&nbsp;frameborder=\"0\" allowfullscreen><\/iframe>";
 
 	/* do: add extensions information if available */
@@ -1010,16 +960,17 @@ LBP.prototype.addInfoControl = function(vid, pid) {
 	LBP.createHTMLEl(elId+"_content_txt", "div", {id: elId+"_content_menu_default_txt", className: "info_txt about_txt"});
 	LBP.createHTMLEl(elId+"_content_menu_default_txt", "span", {id: elId+"_about_headline", className: "headline", innerHTML: this.getTranslation("About_headline")});
 	LBP.createHTMLEl(elId+"_content_menu_default_txt", "div", {id: elId+"_about_txt", innerHTML: content_default});
-	/*do: add xrow-embed info*/
+    /*do: add xrow-embed info*/
 	LBP.createHTMLEl(elId+"_content_menu", "div", {id: elId+"_content_menu_embed", className: "entry", innerHTML: this.getTranslation("EmbedInfo")});
 	LBP.createHTMLEl(elId+"_content_txt", "div", {id: elId+"_content_menu_embed_txt", className: "info_txt embed_txt"});
 	LBP.createHTMLEl(elId+"_content_menu_embed_txt", "span", {id: elId+"_embed_headline", className: "headline", innerHTML: this.getTranslation("EmbedVideoTitle")});
 	LBP.createHTMLEl(elId+"_content_menu_embed_txt", "textarea", {id: elId+"_embed_txt", className:"embed_content_text", innerHTML: content_embed});
-
+    
 	/* do: prepare open info-url on mobile devices - TODO: try to find issue why we can not add this at the start of function (IE9 mobile does not like it above) */
 	if(LBP.isMobile && this.vars.audioPlayer) {
 		(function(p) {
-			LBP.addEvent(elId, "click", function() {window.open(p.options.infoUrl); return false;});
+			LBP.mergeObjs(elId, {onclick: function() {window.open(p.options.infoUrl); return false;}});
+			LBP.fixTouch(elId);
 		}(this));
 		return;
 	}
@@ -1050,8 +1001,8 @@ LBP.prototype.addInfoControl = function(vid, pid) {
 		LBP.mergeObjs(elId, {onclick: function() {p.vars.infoControlActivated = !p.vars.infoControlActivated; if(LBP.getElemStyle(elId+"_content", "display") === "none") {var c = LBP.$(elId+"_content_menu").childNodes; for(var i=0; i<c.length; i++) {LBP.removeCssClass(c[i], "entry_active"); LBP.hideEl(c[i].id+"_txt");} LBP.addCssClass(elId+"_content_menu_default", "entry_active"); LBP.showEl(elId+"_content_menu_default_txt"); LBP.showEl(elId+"_content");} else {LBP.hideEl(elId+"_content");}}});
 		LBP.mergeObjs(elId+"_content_menu_default", {onclick: function() {var c = LBP.$(elId+"_content_menu").childNodes; for(var i=0; i<c.length; i++) {LBP.removeCssClass(c[i], "entry_active"); LBP.hideEl(c[i].id+"_txt");} p.vars.infoControlActive = 0; LBP.addCssClass(this, "entry_active"); LBP.showEl(this.id+"_txt");}});
 		LBP.mergeObjs(elId+"_content_menu_shortcuts", {onclick: function() {var c = LBP.$(elId+"_content_menu").childNodes; for(var i=0; i<c.length; i++) {LBP.removeCssClass(c[i], "entry_active"); LBP.hideEl(c[i].id+"_txt");} p.vars.infoControlActive = 1; LBP.addCssClass(this, "entry_active"); LBP.showEl(this.id+"_txt");}});
-		/*do: and "on" attributes for xrow-embed*/
-	LBP.mergeObjs(elId+"_content_menu_embed", {onclick: function() {var c = LBP.$(elId+"_content_menu").childNodes; for(var i=0; i<c.length; i++) {LBP.removeCssClass(c[i], "entry_active"); LBP.hideEl(c[i].id+"_txt");} p.vars.infoControlActive = 1; LBP.addCssClass(this, "entry_active"); LBP.showEl(this.id+"_txt");}});
+	    /*do: and "on" attributes for xrow-embed*/
+	    LBP.mergeObjs(elId+"_content_menu_embed", {onclick: function() {var c = LBP.$(elId+"_content_menu").childNodes; for(var i=0; i<c.length; i++) {LBP.removeCssClass(c[i], "entry_active"); LBP.hideEl(c[i].id+"_txt");} p.vars.infoControlActive = 1; LBP.addCssClass(this, "entry_active"); LBP.showEl(this.id+"_txt");}});
 		LBP.mergeObjs(elId+"_content_btn", {onclick: function() {p.vars.infoControlActivated = !p.vars.infoControlActivated; p.vars.infoControlActive = 0; LBP.hideEl(elId+"_content");}});
 	}(this));
 
@@ -1067,6 +1018,7 @@ LBP.prototype.addInfoControl = function(vid, pid) {
 	/* do: add keyboard shortcut - I (Information) */
 	this.vars.keyDownAction[73] = 'this.vars.infoControlActivated = !this.vars.infoControlActivated; this.vars.infoControlActive = 0; if(LBP.getElemStyle("'+elId+'_content", "display") === "none") {var c = LBP.$("'+elId+'_content_menu").childNodes; for(var i=0; i<c.length; i++) {LBP.removeCssClass(c[i], "entry_active"); LBP.hideEl(c[i].id+"_txt");} LBP.addCssClass("'+elId+'_content_menu_default", "entry_active"); LBP.showEl("'+elId+'_content_menu_default_txt"); LBP.showEl("'+elId+'_content");} else {LBP.hideEl("'+elId+'_content");}';
 };
+
 LBP.prototype.addInfoEntry = function(vid, entry, innerHTML) {
 	/* do: add entry to infoControl elements if not already */
 	if(LBP.inArray(this.vars.infoControlEl, entry)) {return;}
@@ -1099,7 +1051,7 @@ LBP.prototype.addFullscreenControl = function(vid, pid) {
 		LBP.createHTMLEl(elId, "div", {id: elId+"_fs2", className: "h5_lb_fullscreen_control_fs2"});
 
 		/* do: add "on" attributes */
-		(function(p){LBP.addEvent(elId, "click", function() {p.setScreen(!p.vars.fullscreen);});}(this));
+		(function(p){LBP.mergeObjs(elId, {onclick: function() {p.setScreen(!p.vars.fullscreen);}}); LBP.fixTouch(elId);}(this));
 	}
 };
 /* fct: add big play extra control */
@@ -1227,12 +1179,6 @@ LBP.prototype.addSpinnerControl = function(vid, pid) {
 	/* do: set spinner hidden */
 	this.setSpinner(false);
 };
-/* fct: add LBP-logo extra control */
-LBP.prototype.addLBPLogoControl = function(vid, pid) {
-	var lbpl = LBP.createHTMLEl(pid, 'a', {id: vid+'_lbplogo', className: 'h5_lb_logo', href: 'http:\/\/www.leanbackplayer.com?pk_campaign=gpl', target: '_blank', alt: 'LeanBack Player - HTML5 Video and Audio Player', title: 'LeanBack Player - HTML5 Video and Audio Player'});
-	lbpl.style.background = "transparent url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAHkAAAAPCAYAAADAgWCVAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAACQZJREFUeNrsWHlMldkV/97Oe499G5ZCVRRanGYqRsGILZWMnapRO9o2uIGIouDSxPiPGo1L1KiJGre/1LjFmkwyWrW2SWt0CDFGxNjCKHUkqAQVBGV/j7fQ3/l6rjn9+sTMVKf/eJOT977vu/d3z37OvSbt38MEMoNsTFZ+96YxKNYNNccP8jEFxboP43scVmGsMFAkKBrkYmOHMtwgG0xjxzC9wdhk2D7QK1AXyMPzlAMFGIv+28V+tG6A9zCJ9wEmxbeZ16t3FrG3mZ9N7GgDhnkS0y/ksQhHV/g+g7xyBHl9QMhmF3qVa+V8JZvlDfIp3mUwmUQwKh0GQ6wJsryvA8sqJoRv3Lhx7Pr16/Ptdrt5KM948eIFgWjx8fH2oeYNDAwEt23bVrV169Ya3tDKDkT79TODJGQUyMHPvaBu/k/vIng+OUwPQ7sZJyAcwiYUY2WnNbNzdfH6QV4nMbsYw8zf3LzWIvD9QrlKN37GJn69/C2cgySM9/LwejW8Yr6F5xvlG+T19hABpALCzvO8zKOU18f661Y6Ngsju8aPHz/ibQb+NoOwcnNzM1h5xFhEdXX1Z8Fg8Pd5eXnJlDnGjRuXjOdloEWgMtDqWbNmRbGyP3ry5Ml8+l5eXv4xO0PU4cOHc/FueU1NzRw8p4NS+vv7K+rq6j7H/9QrV678Et8XE2ZDQ8Nvx44dm8p4RIkGzAhWEP0mnj9/fjKwSpmX8qqqqkK8T9i3b994PFdu2rRp4ooVK+j/yjt37nwqjOGA/kiWclAxqOT+/fu/If527dqVh+dVx44dG8c8kL6dIXihTOqGjgo8Hk/lqFGjMvE8/OXLl2X37t0j2ZKam5uLML+U5as4cOBAzrlz537O+ivu7e0t2b9/fy7LY5PpR6/HXq/X9q7rAWOqOu/s7Oyk6NTADBne1dfXR0JrZ8+efWo2m6+CTkLRFCXuBQsWZKSmppJhtTlz5igjR7S3t+trcnJyktasWfNTMmwgEDD19PQQdmxXVxcZTYMD3aX1Bw8ezGcFRi5cuDAUJlHsgwcPZk6aNClj2bJl1eDjD6tWrbqSlZWVdPz48WzsSUrTbDZb5IYNGz7G3PYxY8bcEr2GjWXSZVm7du03mZmZcTt37vwJ1tLeGozl5OxE+nCH4IUi2zZx4sR6yBI4evRo3qFDh8ZERUW5d+zY0Uj6Qna0NDY29oK/66AvV65c2drd3a3LO3369Prbt293LVmyRDmTVRlXpSHHe6z9SjCbz+fTN8avXrv8fr/d0COYeH7kvHnzMuEEflLahAkTEjkVhsPL9TX0DcpM46ig8qBHCDBlfdZgEB97dvTcuXOzDJixoBiUqayMjIyE06dPN504caIF79rhHA2JiYlnFy1adB/86phlZWXJ4eHhFkTe3zld+tjIZikLSppfL8LBoAnvdZnBt03oOjIEL1Gsp8Dly5eb8/PzY4uLi5Nv3rzZdvLkyXbah/BUouSMYJXBCQf3Dw4OmmT/oBoUu1LUexpOwVTIUVRURKnuZ6AFiBAyZiSEjL927VrHmTNnOlwul3XPnj3ZZGQWQoMxnpLC8T0tFOatW7c+oV+kOj9HcowRc+/evYQZ7XA49Ei9cePGK66b9NvJtdKvaiOM7rhw4UIbMF6xkf3GUwPJguj/EcpJ67p1675B9PvFZwuXr/+SD6k3m408AOPWtba2Er42f/78O9w7UI3VRowY4YaeJoBmbN++PUUBX7p0aXRBQUEsysPX7HwBTURxGFLA5OjoaOu7ti5hEjbXPavyREQGGd6FNGsT6for0BeodTakqtEk+NSpUxOJeZqDWk21NUJFBnC9pPCZM2cmhNo7LS2tlpSIKB2F//FHjhzJNmLOmDGDHCSsra1NVwh6hRjRQKmThlUZkhRP+0GZ0ey8qhPXTCZTUMjyF9ToP1NQozfxidKlOxsc9BMjL9OmTfsh70c68kC+buznefjw4Utu4vwsN6XrG6A/wolalLyUFSjNb968+ak8sqojkAWebL9+/XpnfX1996NHj/reQv1MQ84jLMIkbN4rAK8OcBqzhjimve5iCwsLE4DRA0H+BvorIqORPBiGduM5wI2dDym9iQQjhTGGR+1BAz2A/i0lJcU2ZcqUuKampv/AHD58uBtp04UoaqY6i6gZhl6AnCm+srIy8/nz50VomH6sMHfv3v3k2bNn3lOnTuWgoYvkDEU8BzFH76TdbjdFYCuojTIC9veyzGZ2DCec5COjfMOGDQvHnnFsk36n0+njfXs4a3gtFovKGupY6IcedOOjOWymTINGLF0evczK4mg2/rF69eofQJEumjgUZWdnhxO9bR5hESZhswH7kF51geGdhehip4Npn0jXk0GfL126NDw9PT0CnW0DPj0GNS1evLgakeBDLYzEoBSqJSUlkYc/RtTX0zNjd0RERJDXa+hccwgX3Xg9OtV+MmgozIqKCoreDjRZl+7evfsYUUZl43cw/K/QzXaUlpZ+HRcXR0cSDXv3YF0Njo+uixcv/kKUIB/2pzSvJSQk0G87G6c3JiZG53fLli2jgTsLjVE0MktkKF5KSkpSONX2w1kGECABcezqI4NyuqaO+tfgMRHZUsevra19gaBqRqbJgN7d8txF0RQHRRQsX748530UZKTJWiiyimuKkzu/QXEB4BDnUr9KSyyYOk/bRepUlymq6bHxd4VnUeVB3LoFxNlSYoaJfVWkSX684rLDIs6t6tKhl1OpqrVOnt/H723c9EUaLiu0N/CiLm9Mohnu5/d2bs6chnOyvGQaFOdx4kHvdGlTD86W/0Q9Sg8LC3MgQsJaWlo8/4thk5OTHXRpgmOFjs0bKsF7hMBBVpBZKC8grkXV/wFeaxa3b0Fxaybfy4uLoKE5Chgw+w23eH2izsobLXmNazJc3So5ephH4/sg7yNv6ULJZ+TFI3gOiitim+HGazDETdxrOU3iFoWajYSRI0cm1tXVfQZj/4k9YuDb3oGQB+JM+Ons2bO/unr1agvXpx7G+nB//T0Pk+Eo5eSUYRNpzv8d7sPVedCnaonwxg/j/2RkeW42i1QV/A6GeRcYH8Y7HP8SYACOSd1S9XQNcAAAAABJRU5ErkJggg==') no-repeat";
-	
-};
 /* fct: initialize document events */
 LBP.prototype.initializeDocumentEvents = function() {
 	if(LBP.domEventsAdded) {
@@ -1280,20 +1226,19 @@ LBP.prototype.initializeDocumentEvents = function() {
 		} else {return LBP.onKeyAction;}
 	};
 	/* do: something if window size changed */
-	this.vars.onresize = function() {if(typeof(LBP) === "undefined") {return;} if(LBP.playerFocused !== null) {var vid = LBP.playerFocused.id; var o = LBP.getPlayer(vid); if(!o.vars.fullscreen) {o.resetControls();} if(LBP.$(vid).focused && o){o.setScreen(o.vars.fullscreen);}}};
+	this.vars.onresize = function() {if(typeof(LBP) === "undefined") {return;} if(LBP.playerFocused !== null) {var vid = LBP.playerFocused.id; var o = LBP.getPlayer(vid); if(LBP.$(vid).focused && o){o.setScreen(o.vars.fullscreen);}}};
 	/* do: something if window.parent size changed (if player embedded in [CORS] IFrame) */
 	try {
 		(function(p) {
 			LBP.addEvent(window, "message", function(e) {
 				var data = false;
 				try {data = JSON.parse(e.data);} catch(_ex) {}
-
+				
 				if(!!data && typeof(data.action) !== "undefined" && data.action === "setScreen" && typeof(data.vid) !== "undefined" && data.vid === p.options.vid && typeof(data.value) !== "undefined") {
 					p.setScreen(data.value, true, data.cors, data.bsXY);
 				} else if(!!data && typeof(data.action) !== "undefined" && data.action === "setCorsStatus" && typeof(data.vid) !== "undefined" && data.vid === p.options.vid && typeof(data.cors) !== "undefined" && typeof(data.iframe) !== "undefined") {
 					p.vars.isIframe = data.iframe;
 					p.vars.isCorsIframe = data.cors;
-
 					/* do: something if window.parent size changed */
 					if(!data.cors && !data.iframe) {
 						(function(fct) {
@@ -1303,11 +1248,6 @@ LBP.prototype.initializeDocumentEvents = function() {
 					} else if(data.cors || data.iframe) {
 						/* do: set css class for in-IFrame usage */
 						LBP.addCssClass(document.body, "h5_lb_iframe");
-						
-						/* do: if in iframe register onunload event */
-						// if(p.vars.isIframe) {window.onunload = function() {parent._LBP_IFrameEvent = false;};}
-						LBP.addEvent(window, "onbeforeunload", function(){LBP.removeEvent(parent, "message", LBP.receiveIframeEvent); parent._LBP_IFrameEvent = false;});
-						
 						/* do: init IFrame controls */
 						if(!p.vars.initialized) {
 							p.initializeControls();
@@ -1315,23 +1255,10 @@ LBP.prototype.initializeDocumentEvents = function() {
 					}
 				}
 			});
-			
-			/* do: wait until parents iframe-event listener is ready */
-			var waitUntilParentTimeout = null;
-			var waitUntilParentReady = function() {
-				if(parent && !parent._LBP_IFrameEvent) {
-					window.setTimeout(waitUntilParentReady, 66);
-				} else {
-					window.clearTimeout(waitUntilParentTimeout); waitUntilParentTimeout = null;
-					
-					window.setTimeout(function() {
-						var target = parent.postMessage ? parent : (parent.document.postMessage ? parent.document : false);
-						if(!!target) {target.postMessage(JSON.stringify({action: "getCorsStatus", vid: p.options.vid}), "*");}
-					}, 1000);
-				}
-			};
-			if(parent) {waitUntilParentTimeout = window.setTimeout(waitUntilParentReady, 66);}
 		}(this));
+		/* do: if IFrame send postMessage to parent to get CORS status */
+		var target = parent.postMessage ? parent : (parent.document.postMessage ? parent.document : false);
+		if(!!target) {target.postMessage(JSON.stringify({action: "getCorsStatus", vid: this.options.vid}), "*");}
 	} catch(ex1) {}
 
 	/* do: init none-IFrame controls */
@@ -1429,19 +1356,17 @@ LBP.prototype.initializeSources = function(j) {
 
 	/* do: on loadedmetadata store dimensions */
 	(function(p) {
-		var onloadedmetadata = function() {
+		LBP.addEvent(p.vars.playableSources[i].video, "loadedmetadata", function() {
 			var id = (/[^_]+$/.exec(this.id))[0];
-			p.vars.playableSources[id].res = ((p.vars.playableSources[id].video.videoHeight >= 2000) ? "2K" : ((p.vars.playableSources[id].video.videoHeight >= 1080) ? 1080 : ((p.vars.playableSources[id].video.videoHeight >= 720) ? 720 : ((p.vars.playableSources[id].video.videoHeight >= 480) ? 480 : ((p.vars.playableSources[id].video.videoHeight >= 360) ? 360 : ((p.vars.playableSources[id].video.videoHeight >= 235) ? 240 : ((p.vars.playableSources[id].video.videoHeight >= 175) ? 180 : "SD")))))));
-			p.vars.playableSources[id].type = ((p.vars.playableSources[id].video.videoHeight >= 2000) ? "" : ((p.vars.playableSources[id].video.videoHeight >= 1080) ? "HD" : ((p.vars.playableSources[id].video.videoHeight >= 720) ? "HD" : ((p.vars.playableSources[id].video.videoHeight >= 480) ? "SD" : ((p.vars.playableSources[id].video.videoHeight >= 360) ? "SD" : "")))));
+			//p.vars.playableSources[id].res = ((p.vars.playableSources[id].video.videoHeight >= 1080) ? 1080 : ((p.vars.playableSources[id].video.videoHeight >= 720) ? 720 : ((p.vars.playableSources[id].video.videoHeight >= 480) ? 480 : ((p.vars.playableSources[id].video.videoHeight >= 360) ? 360 : ((p.vars.playableSources[id].video.videoHeight >= 235) ? 240 : ((p.vars.playableSources[id].video.videoHeight >= 175) ? 180 : "SD"))))));
+			p.vars.playableSources[id].res = p.vars.playableSources[id].video.videoHeight;
+			p.vars.playableSources[id].type = ((p.vars.playableSources[id].video.videoHeight >= 1080) ? "HD" : ((p.vars.playableSources[id].video.videoHeight >= 720) ? "HD" : ((p.vars.playableSources[id].video.videoHeight >= 480) ? "SD" : ((p.vars.playableSources[id].video.videoHeight >= 360) ? "SD" : ""))));
 			LBP.mergeObjs(this, {src: ""}); try{this.load();}catch(ex2){}
 
 			var r = 0;
 			for(var i=0, pl=p.vars.playableSources.length; i<pl; i++){if(typeof p.vars.playableSources[i].res !== "undefined" && typeof p.vars.playableSources[i].type !== "undefined"){if(p.vars.playableSources[i].video !== null) {p.vars.playableSources[i].video = null;} r++;}}
 			if(r === p.vars.playableSources.length) {p.fixSourcesMenu();} else if(parseInt(id, 10) < p.vars.playableSources.length) {p.initializeSources(id);}
-			
-			LBP.removeEvent(this, "loadedmetadata", onloadedmetadata);
-		}
-		LBP.addEvent(p.vars.playableSources[i].video, "loadedmetadata", onloadedmetadata);
+		});
 	}(this));
 };
 /* fct: set sources menu text */
@@ -1490,7 +1415,7 @@ LBP.prototype.drawSourcesMenu = function(id) {
 	if(this.vars.playableSources[id].type !== null) {LBP.createHTMLEl(elId+"_"+id, "span", {id: elId+"_sup_"+id, innerHTML: " <span>"+this.vars.playableSources[id].type+"</span>"});}
 
 	(function(p) {
-		LBP.mergeObjs(elId+"_"+id, {title: p.getTranslation("Sources_to", txt), onclick: function() {if(p.vars.stoped) {return;} p.vars.seeking.subs = !p.vars.hideSubtitle; p.setSubtitle(false); p.fixLoadingSource("onSrcSwitch", null, p.vars.playableSources[id].src); p.setSourcesMenuTxt(id);}});
+		LBP.mergeObjs(elId+"_"+id, {title: p.getTranslation("Sources_to", txt), onclick: function() {/*if(p.vars.stoped) {return;}*/ p.vars.seeking.subs = !p.vars.hideSubtitle; p.setSubtitle(false); p.fixLoadingSource("onSrcSwitch", null, p.vars.playableSources[id].src); p.setSourcesMenuTxt(id);}});
 	}(this));
 
 	LBP.setCssStyle(navId, "top", "-"+parseInt((((LBP.$(navId) && LBP.$(navId).childNodes)?LBP.$(navId).childNodes.length:0)*(LBP.getElemStyle(elId+"_"+id, "height")+LBP.getElemBorderWidth(elId+"_"+id).top + LBP.getElemBorderWidth(elId+"_"+id).bottom+LBP.getElemPaddingWidth(elId+"_"+id).top + LBP.getElemPaddingWidth(elId+"_"+id).bottom))+5, 10)+"px");
@@ -1508,15 +1433,7 @@ LBP.prototype.fixSourcesMenu = function() {
 	/* do: sort sources from high to low resolution (eg. 720p, 360p, 480p => 720p, 480p, 360p) */
 	var Numsort = function(a, b) {return b.res - a.res;}
 	for(var i=0, sl=s.length; i<sl; i++) {if(!LBP.inArray(t, s[i].res)) {t.push(s[i].res); sns.push(s[i]);}}
-	
-	/* do: hide sources control if sns<=1 or remove visibility CSS class if > 1 */
-	var elId = this.options.vid+"_sources_control";
-	if(sns.length <= 1) {
-		LBP.hideEl(elId); this.initializeControls(); this.setSpinner(false);
-	} else {
-		LBP.removeCssClass(elId, "elem_visibility_hidden");
-	}
-	
+
 	/* do: overwrite sources array with sorted sources */
 	this.vars.playableSources = sns.sort(Numsort); s = this.vars.playableSources;
 
@@ -1533,7 +1450,7 @@ LBP.prototype.fixSourcesMenu = function() {
 };
 /* fct: fix issue with "preload" attribute that most browsers have */
 LBP.prototype.fixPreload = function(){
-	var preload = this.vars.fixPreload, ff3 = (ua$.match(/firefox\/3./i) !== null)?!0:!1;
+	var preload = this.vars.fixPreload, ff3 = (LBP.isBrowser === "firefox3")?!0:!1;
 
 	/* fix "preload" attribute in firefox 3.x */
 	if(ff3 && preload === "auto") {this.html5Obj.autobuffer = preload;}
@@ -1564,20 +1481,18 @@ LBP.prototype.fixLoadingSource = function(a, e, src) {
 
 	/* do: force loading */
 	if(src !== null) {if(e === null) {LBP.mergeObjs(this.vars.fixLoadingSource, {event:parseFloat(this.html5Obj.currentTime)});} LBP.mergeObjs(this.html5Obj, {src: src}); this.vars.playableSrc = src;}
-	else if(this.html5Obj.src === "" || this.html5Obj.src === location.href) {LBP.mergeObjs(this.html5Obj, {src: this.vars.playableSrc, currentSrc:this.vars.playableSrc});}
+	else if(this.html5Obj.src === "" || this.html5Obj.src === location.href) {LBP.mergeObjs(this.html5Obj, {src: this.vars.playableSrc});}
 
 	try{this.html5Obj.load();}catch(ex){}
 
 	/* do: wait until media is ready to play */
 	if(this.vars.isIE) {LBP.addEvent(this.html5Obj, "canplay", this.vars.fixLoadingSource.fct);}
-	else if(this.vars.isSafari) {LBP.addEvent(this.html5Obj, "loadedmetadata", this.vars.fixLoadingSource.fct);}
 	else {LBP.addEvent(this.html5Obj, "loadeddata", this.vars.fixLoadingSource.fct);}
 };
 /* fct: onCanPlay */
 LBP.prototype.onCanPlay = function() {
 	/* do: remove event now */
 	if(this.vars.isIE) {LBP.removeEvent(this.html5Obj, "canplay", this.vars.fixLoadingSource.fct);}
-	else if(this.vars.isSafari) {LBP.removeEvent(this.html5Obj, "loadedmetadata", this.vars.fixLoadingSource.fct);}
 	else {LBP.removeEvent(this.html5Obj, "loadeddata", this.vars.fixLoadingSource.fct);}
 
 	/* innerFct: do after this fct */
@@ -1614,15 +1529,12 @@ LBP.prototype.onPlay = function() {
 		/* do: set timeout to check again */
 		window.clearTimeout(this.vars.onPlayProc); (function(p) {p.vars.onPlayProc = window.setTimeout(function() {p.onPlay();}, 350);}(this)); return;
 	}
-	
-	/* do: if not yet, set player in focus */
-	LBP.playerFocused = LBP.$(vid);
 
 	/* do: clear timeout */
 	window.clearTimeout(this.vars.onPlayProc);
 
 	/* do: fix source loading */
-	if((this.vars.stoped || this.html5Obj.currentTime <= 0) && (!(LBP.canPlayType[LBP.isBrowser]).test(this.html5Obj.currentSrc) && this.options.checkExtensions)) {LBP.hideEl(vid+"_big_play_button"); this.fixLoadingSource("onPlay", null, null); return;}
+	if((this.vars.stoped || this.html5Obj.currentTime <= 0) && !(LBP.canPlayType[LBP.isBrowser]).test(this.html5Obj.currentSrc)) {LBP.hideEl(vid+"_big_play_button"); this.fixLoadingSource("onPlay", null, null); return;}
 
 	/* do: on stop and on POS1-key */
 	if(parseFloat(this.html5Obj.currentTime) >= parseFloat(this.html5Obj.duration) && this.html5Obj.duration > 0) {this.html5Obj.currentTime = 0.00;}
@@ -1681,7 +1593,6 @@ LBP.prototype.onBuffering = function() {
 				if(this.vars.buffering.endChanged < 0) {this.vars.buffering.endChanged = (bl < 2)?0:1;}
 
 				/* do: calculate the new "loaded" var */
-				if(isNaN(this.html5Obj.duration)) {return;}
 				var nl = parseFloat(this.html5Obj.buffered.end(this.vars.buffering.endChanged)/this.html5Obj.duration);
 
 				/* do: calculate the progress bar */
@@ -1743,7 +1654,7 @@ LBP.prototype.onSeeking = function(e) {
 	if(this.vars.stoped) {return;}
 
 	/* do: if currentSrc not playable fixLoadingSource */
-	if(!(LBP.canPlayType[LBP.isBrowser]).test(this.html5Obj.currentSrc) && this.options.checkExtensions) {this.setBigPlayButton(false); this.fixLoadingSource("onSeeking", e, null); return;}
+	if(!(LBP.canPlayType[LBP.isBrowser]).test(this.html5Obj.currentSrc)) {this.setBigPlayButton(false); this.fixLoadingSource("onSeeking", e, null); return;}
 
 	/* do: calculate seeking position */
 	if(!!e.clientX) {
@@ -1777,7 +1688,7 @@ LBP.prototype.seekTo = function(s, sec) {
 	var seek = ((typeof(sec) !== "boolean") ? parseFloat(sec) : ((sec) ? this.options.seekSkipSec : parseFloat((this.html5Obj.duration*(this.options.seekSkipPerc/100)))));
 
 	/* do: overwrite currentTime with time to seek to and catch errors of type: INDEX_SIZE_ERR (error here mainly in Safari) */
-	try{if((s === "-") && this.html5Obj.currentTime === 0 && seek === 0) {this.onStop();} else {var t = this.html5Obj.currentTime; this.html5Obj.currentTime = ((s === "+") ? ((parseFloat(t + seek) < this.html5Obj.duration) ? parseFloat(t + seek) : t) : Math.abs(parseFloat(t - seek)));} if(this.vars.isSafari && !this.vars.seeking.playing) {(function(p) {window.setTimeout(function() {p.vars.fakeSafariSwitch = true; p.html5Obj.play();}, 122); window.setTimeout(function() {p.vars.fakeSafariSwitch = false; p.html5Obj.pause();}, 166);}(this));} else if(this.vars.seeking.playing) {this.onPlay(); this.vars.seeking.playing = false;} this.onBuffering();} catch(ex) {(function(p) {window.setTimeout(function() {p.seekTo(s, sec);}, 550);}(this));}
+	try{if((s === "-") && this.html5Obj.currentTime === 0 && seek === 0) {this.onStop();} else {var t = this.html5Obj.currentTime; this.html5Obj.currentTime = ((s === "+") ? ((parseFloat(t + seek) < this.html5Obj.duration) ? parseFloat(t + seek) : t) : Math.abs(parseFloat(t - seek)));} if(this.vars.seeking.playing) {this.onPlay(); this.vars.seeking.playing = false;} this.onBuffering();} catch(ex) {(function(p) {window.setTimeout(function() {p.seekTo(s, sec);}, 550);}(this));}
 };
 /* fct: draw fullscreen-icon */
 LBP.prototype.drawFullscreenIcon = function() {
@@ -1803,7 +1714,7 @@ LBP.prototype.drawProgressBar = function() {
 	var vid = this.options.vid;
 
 	/* do: cancel if stoped */
-	if(this.vars.stoped && !this.vars.isCorsIframe) {return;}
+	if(this.vars.stoped) {return;}
 
 	/* do: calculate and set progress bar "buffered" */
 	if(this.vars.loaded > 0.98) {this.vars.loaded = 1;} // need to fake it, sometimes on replay the buffering will lose pixel
@@ -1848,10 +1759,10 @@ LBP.prototype.drawProgressTimer = function() {
 };
 /* fct: switch between small-screen and full-screen/-window mode */
 LBP.prototype.setScreen = function(fs, pm, cors, bsXY) {
-	var vid = this.options.vid, b = document.body, chk = this.vars.isIframe, p = LBP.$(this.options.pid), fP = false, d = document.documentElement, pm = pm||false, cors = cors||false, bsXY = bsXY||null, ifr = null;
+	var vid = this.options.vid, b = document.body, chk = this.vars.isIframe, p = LBP.$(this.options.pid), fP = false, d = document.documentElement, pm = pm||false, cors = cors||false, bsXY = bsXY||null;
 
 	/* do: cancel if audio player or video stoped or in autoFullscreen mode */
-	if(!this.vars.videoPlayer || (this.vars.stoped && !this.options.autoFullscreen && (!pm || (pm && !this.vars.isCorsIframe))) || (this.vars.stoped && pm && this.vars.isCorsIframe && this.vars.fullscreen === fs && fs && !this.vars.fullscreen)) {return;}
+	if(!this.vars.videoPlayer || (this.vars.stoped && !this.options.autoFullscreen)) {return;}
 	
 	/* do: use postMessage to resize cross-domain IFrame */
 	if(this.vars.isCorsIframe) {
@@ -1861,98 +1772,49 @@ LBP.prototype.setScreen = function(fs, pm, cors, bsXY) {
 			return;
 		} else if(chk && pm) {this.vars.bsXY = bsXY;}
 	}
-
+	
 	/* do: if in IFrame and not CORS, add "allowfullscreen" attribute to IFrame */
 	if(chk && !this.vars.isCorsIframe) {
-		ifr = window.frameElement, fP = (LBP.isTag(ifr, "iframe"))?ifr:ifr.offsetParent, d = (chk?window.parent.document.documentElement:document.documentElement);
+		var ifr = window.frameElement, fP = (LBP.isTag(ifr, "iframe"))?ifr:ifr.offsetParent, d = (chk?window.parent.document.documentElement:document.documentElement);;
 		fP.setAttribute("webkitallowfullscreen", !0); fP.setAttribute("mozallowfullscreen", !0); fP.setAttribute("allowfullscreen", !0);
 	}
 
-	/* do: if W3 fullscreen API supported */
-	// if(typeof(this.html5Obj.requestFullscreen) !== "undefined") {
-		// /* do: enter/exit fullscreen */
-		// try {
-			// if(!this.vars.fullscreen && fs) {LBP.isRealFullscreen = fs; p.requestFullscreen = p.requestFullscreenWithKeys||p.requestFullscreen; try {p.requestFullscreen();} catch(ex) {}}
-			// else if(this.vars.fullscreen && !fs) {document.exitFullscreen();}
-		// } catch(ex) {}
-	// } else
-	// /* do: if WK full-screen supported */
-	// if(typeof(this.html5Obj.webkitEnterFullscreen) !== "undefined" || typeof(this.html5Obj.webkitExitFullscreen) !== "undefined") {
-		// /* do: enter/cancel WK full-screen */
-		// try {
-			// /* do: Safari 5.1+, Chrome 15+ */
-			// if(typeof(p.webkitRequestFullScreen) !== "undefined") {
-				// if(document.webkitIsFullScreen && !fs) {LBP.isRealFullscreen = fs; document.webkitCancelFullScreen();}
-				// else if(fs) {
-					// var par = !0, ver = 0;
-					// /* do: parameter bug in Safari 5.1(.1-.x) */
-					// if(LBP.isBrowser === "safari") {
-						// (/version\/(\d+\.\d+\.\d+|\d+\.\d+)/i.test(ua$)); par = (parseInt((((ver = RegExp.$1.replace(/\./g, "")) < 3)?ver+"0":ver), 10) < 513)?!1:!0;
-					// }
-					// LBP.isRealFullscreen = fs; p.webkitRequestFullScreen(((par)?Element.ALLOW_KEYBOARD_INPUT:null));
-					// LBP.isRealFullscreen = fs; p.webkitRequestFullScreen(Element.ALLOW_KEYBOARD_INPUT);
-					// if (!document.webkitCurrentFullScreenElement) {
-						// p.webkitRequestFullScreen(); // if not allowed to use keyboard-input
-					// }
-				// }
-			// }
-			// /* do: Safari < 5.1, Chrome < 15 or !preventRealFullscreen */
-			// else if(typeof(p.webkitRequestFullScreen) === "undefined" && !this.vars.preventRealFullscreen) {LBP.isRealFullscreen = fs; this.html5Obj.webkitEnterFullscreen(); return;}
-		// } catch(ex) {}
-	// }
-	// else
-	// /* do: if FF full-screen supported */
-	// if(typeof(this.html5Obj.mozRequestFullScreen) !== "undefined" || typeof(document.mozCancelFullScreen) !== "undefined" && document.mozFullScreenEnabled) {
-		// /* do: enter/cancel FF full-screen */
-		// try {
-			// /* do: FF 10+ */
-			// var df = document.mozFullScreen, dfe = document.mozFullScreenElement;
-			// if(!df && dfe === null && !this.vars.fullscreen && fs) {LBP.isRealFullscreen = fs; try {p.requestFullScreenWithKeys();} catch(ex) {p.mozRequestFullScreen();}}
-			// else if(df && dfe !== null && this.vars.fullscreen && !fs) {document.mozCancelFullScreen();}
-		// } catch(ex) {}
-	// }
-	
-	/* do: find the right method, call on correct element */
-	var innerRequestFullscreen = function(el, fs) {
+	/* do: if WK full-screen supported */
+	if(typeof(this.html5Obj.webkitEnterFullscreen) !== "undefined" || typeof(this.html5Obj.webkitExitFullscreen) !== "undefined") {
+		/* do: enter/cancel WK full-screen */
 		try {
-			if(el.requestFullScreen) {
-				el.requestFullScreen();
-			} else if(el.mozRequestFullScreen) {
-				try {el.requestFullScreenWithKeys();} catch(ex) {el.mozRequestFullScreen();}
-			} else if(el.webkitRequestFullScreen) {
-				try {
-					el.webkitRequestFullScreen(Element.ALLOW_KEYBOARD_INPUT);
-				} catch(ex) {
-					// if (!document.webkitFullscreenElement || !document.webkitCurrentFullScreenElement) {
-						el.webkitRequestFullScreen(); // if not allowed to use keyboard-input
-					// }
+			/* do: Safari 5.1+, Chrome 15+ */
+			if(typeof(p.webkitRequestFullScreen) !== "undefined") {
+				if(document.webkitIsFullScreen && !fs) {document.webkitCancelFullScreen();}
+				else if(fs) {
+					var par = !0, ver = 0;
+					/* do: parameter bug in Safari 5.1(.1-.x) */
+					if(LBP.isBrowser === "safari") {
+						(/version\/(\d+\.\d+\.\d+|\d+\.\d+)/i.test(ua$)); par = (parseInt((((ver = RegExp.$1.replace(/\./g, "")) < 3)?ver+"0":ver), 10) < 513)?!1:!0;
+					}
+					p.webkitRequestFullScreen(((par)?Element.ALLOW_KEYBOARD_INPUT:null));
 				}
 			}
-			LBP.isRealFullscreen = fs;
-		} catch(ex) {
-		}
-	};
-	
-	var innerCancelFullscreen = function() {
-		if(document.cancelFullScreen) {
-			document.cancelFullScreen();
-		} else if(document.mozCancelFullScreen) {
-			document.mozCancelFullScreen();
-		} else if(document.webkitCancelFullScreen) {
-			document.webkitCancelFullScreen();
-		}
-	};
-
-	var fullscreenElement = document.fullscreenElement || document.mozFullScreenElement || document.webkitFullscreenElement || null;
-	var fullscreenEnabled = ((document.fullscreenEnabled || document.mozFullScreenEnabled || document.webkitFullscreenEnabled) && !LBP.isMobile && LBP.isBrowser !== "opera");
-	if(fullscreenEnabled && fullscreenElement === null && !this.vars.fullscreen && fs) {
-		innerRequestFullscreen(p, fs);
-	} else if(fullscreenEnabled && fullscreenElement !== null && this.vars.fullscreen && !fs) {
-		innerCancelFullscreen();
+			/* do: Safari < 5.1, Chrome < 15 or !preventRealFullscreen */
+			else if(typeof(p.webkitRequestFullScreen) === "undefined" && !this.vars.preventRealFullscreen) {this.html5Obj.webkitEnterFullscreen(); return;}
+		} catch(ex) {}
 	}
 
+	/* do: if FF full-screen supported */
+	if(typeof(this.html5Obj.mozRequestFullScreen) !== "undefined" || typeof(document.mozCancelFullScreen) !== "undefined" && document.mozFullScreenEnabled) {
+		/* do: enter/cancel FF full-screen */
+		try {
+			/* do: FF 10+ */
+			var df = document.mozFullScreen, dfe = document.mozFullScreenElement;
+			if(!df && dfe === null && !this.vars.fullscreen && fs) {try {p.requestFullScreenWithKeys();} catch(ex) {p.mozRequestFullScreen();}}
+			else if(df && dfe !== null && this.vars.fullscreen && !fs) {document.mozCancelFullScreen();}
+		} catch(ex) {}
+	}
+	
+	document.cancelFullScreen = document.webkitCancelFullScreen || document.mozCancelFullScreen || document.cancelFullScreen;
+	
 	if(typeof(document.cancelFullScreen) !== "undefined" && !this.vars.fullscreenEvent && !this.vars.isCorsIframe) {
-		var fsObj = (!chk)?document:p;
+		var fsObj = (chk)?document:p;
 		(function(p, o) {
 			/* do: add fullscreenchange event */
 			var e = {};
@@ -1966,7 +1828,7 @@ LBP.prototype.setScreen = function(fs, pm, cors, bsXY) {
 	}
 
 	/* do: set full-screen/-window */
-	if(fs && !this.vars.fullscreen) {
+	if(fs) {
 		/* do: store document overflow style */
 		if(typeof(LBP.overflow) === "undefined") {LBP.overflow = d.style.overflow;}
 		/* do: set document body CSS class for full-screen */
@@ -1985,19 +1847,12 @@ LBP.prototype.setScreen = function(fs, pm, cors, bsXY) {
 			/* do: add CSS class for full-screen also to IFrame-parent */
 			LBP.addCssClass(fP, "h5_lb_fullscreen");
 			/* do: store IFrame-parent style */
-			if(typeof(this.vars.frameParent) === "undefined") {this.vars.frameParent = {style: fP.getAttribute("style")||"", fP: fP};}
+			if(typeof(this.vars.frameParent) === "undefined") {this.vars.frameParent = {style: fP.getAttribute("style"), fP: fP};}
 			/* do: set IFrame-parent style for full-screen */
 			LBP.setCssStyle(fP, ["height", "width"], [bsXY.height+"px", bsXY.width+"px"]);
 			/* do: reset IFrame css class */
 			LBP.removeCssClass(ifr, "h5_lb_player_smallscreen");
 			LBP.addCssClass(ifr, "h5_lb_player_fullscreen");
-
-			/* do: add fancybox support */
-			if(typeof(window.parent.$) !== "undefined" && typeof(window.parent.$.fancybox) !== "undefined") {
-				if(typeof(this.vars.frameParentNode) === "undefined") {this.vars.frameParentNode = {};}
-				this.vars.frameParentNode = {style: fP.parentNode.getAttribute("style")||"", fPN: fP.parentNode};
-				LBP.setCssStyle(fP.parentNode, ["height", "width", "position", "top", "left"], [bsXY.height+"px", bsXY.width+"px", "fixed", "0", "0"]);
-			}
 		}
 		/* do: video is full-screen */
 		this.vars.fullscreen = true;
@@ -2005,15 +1860,15 @@ LBP.prototype.setScreen = function(fs, pm, cors, bsXY) {
 		this.sizeScreen();
 		/* do: reset controls */
 		this.resetControls();
-		/* do: set video in focus for fullscreen keyboard events */
-		window.setTimeout(function() {
-			LBP.playerFocused = LBP.$(vid);
-		}, 220);
 	}
 	/* do: set small-screen */
 	else if(!fs && this.vars.fullscreen) {
 		/* do: video is not full-screen */
-		this.vars.fullscreen = LBP.isRealFullscreen = fs;
+		this.vars.fullscreen = false;
+		/* do: resize and set video */
+		this.sizeScreen();
+		/* do: reset controls */
+		this.resetControls();
 		/* do: if IFrame */
 		if(fP) {
 			/* do: remove CSS class for full-screen from IFrame-parent */
@@ -2021,22 +1876,10 @@ LBP.prototype.setScreen = function(fs, pm, cors, bsXY) {
 			/* do: set IFrame-parents style for small-screen */
 			var fPS = this.vars.frameParent;
 			if(fPS) {fPS.fP.removeAttribute("style"); fPS.fP.setAttribute("style", fPS.style);}
-			delete this.vars.frameParent;
 			/* do: reset IFrame css class */
 			LBP.removeCssClass(ifr, "h5_lb_player_fullscreen");
 			LBP.addCssClass(ifr, "h5_lb_player_smallscreen");
-			
-			/* do: add fancybox support */
-			if(typeof(window.parent.$) !== "undefined" && typeof(window.parent.$.fancybox) !== "undefined" && typeof(this.vars.frameParentNode) !== "undefined") {
-				var fPS = this.vars.frameParentNode;
-				if(fPS) {fPS.fPN.removeAttribute("style"); fPS.fPN.setAttribute("style", fPS.style);}
-				delete this.vars.frameParentNode;
-			}
 		}
-		/* do: resize and set video */
-		this.sizeScreen();
-		/* do: reset controls */
-		this.resetControls();
 		/* do: add CSS class from controls bar if shown below video viewport */
 		if(this.options.controlsBelow) {LBP.addCssClass(vid+"_controls", "h5_lb_controls_below");}
 		/* do: style outer html5_player div */
@@ -2074,7 +1917,7 @@ LBP.prototype.sizeScreen = function() {
 
 	var s = {h: this.vars.videoHeight, w: this.vars.videoWidth}, ps = s, mt = 0, ml = 0;
 	/* do: resize poster to fullscreen ratio of video */
-	if(this.vars.fullscreen) {var bsXY = (!!this.vars.bsXY && this.vars.isCorsIframe)?this.vars.bsXY:LBP.getBrowserSizeXY(this.vars.isIframe); ps = {h: bsXY.height, w: bsXY.width}; s = LBP.resizeToBrowser(s.h, s.w, bsXY); mt = parseInt((bsXY.height-s.h)/2, 10); ml = "-"+parseInt(s.w/2, 10);}
+	if(this.vars.fullscreen) {var bsXY = (!!this.vars.bsXY && this.vars.isCorsIframe)?this.vars.bsXY:LBP.getBrowserSizeXY(); ps = {h: bsXY.height, w: bsXY.width}; s = LBP.resizeToBrowser(s.h, s.w, bsXY); mt = parseInt((bsXY.height-s.h)/2, 10); ml = "-"+parseInt(s.w/2, 10);}
 
 	/* do: set CSS style of video and video parent position and dimenstions */
 	LBP.setCssStyle(this.options.vid, ["height", "width", "marginTop"], [s.h+"px", s.w+"px", mt+"px"]);
@@ -2234,12 +2077,10 @@ LBP.prototype.setSubtitle = function(v) {
 	var elId = this.options.vid+"_subtitle";
 	if(!this.options.showSubtitles || LBP.$(elId) === null || (parseFloat(this.html5Obj.currentTime) === 0 && !this.vars.stoped) || parseFloat(this.html5Obj.currentTime) >= parseFloat(this.html5Obj.duration)) {return;}
 
-	if(v && this.vars.activeSub !== null) {if(this.vars.activeSubId >= 0) {LBP.showEl(elId);} /*this.vars.hideSubtitle = false;*/ this.drawSubtitles(); this.vars.seeking.subs = null;}
-	else if(!v && this.vars.activeSub !== null){LBP.hideEl(elId); /*this.vars.hideSubtitle = true;*/ this.vars.activeSubId = -1;}
+	if(v && this.vars.activeSub !== null) {if(this.vars.activeSubId >= 0) {LBP.showEl(elId);} this.vars.hideSubtitle = false; this.drawSubtitles(); this.vars.seeking.subs = null;}
+	else if(!v && this.vars.activeSub !== null){LBP.hideEl(elId); this.vars.hideSubtitle = true; this.vars.activeSubId = -1;}
 	/* do: set controls item to active subtitle lang */
-	if(this.vars.seeking.subs === null) {
-		this.resetSubsControlItem(!this.vars.hideSubtitle);
-	}
+	if(this.vars.seeking.subs === null) {this.resetSubsControlItem(!this.vars.hideSubtitle);}
 };
 /* fct: get next available subtitle */
 LBP.prototype.nextSubtitle = function() {
@@ -2416,23 +2257,23 @@ LBP.prototype.setActiveSubs = function() {
 /* fct: draw subtitle menu items */
 LBP.prototype.drawSubsMenu = function() {
 	var vid = this.options.vid, navId = vid+"_subtitle_nav";
-	LBP.createHTMLEl(vid+"_subtitle_control_inner", "div", {id: navId, className: "subtitle_nav", onclick: function(e) {e.preventDefault(); e.stopPropagation(); LBP.hideEl(navId); LBP.$(vid+"_subtitle_control_inner").shown = false;}});
+	LBP.createHTMLEl(vid+"_subtitle_control_inner", "div", {id: navId, className: "subtitle_nav"});
 	LBP.setCssStyle(navId, "top", "-12px");
 
-	(function(p, vid) {
+	(function(p) {
 		for(var t in p.vars.subs) {
 			if(typeof(p.vars.subs[t]) === "function"){continue;}
 			if(LBP.$("subs_"+t) === null && p.vars.subs[t].track[0]) {
-				LBP.createHTMLEl(navId, "div", {id: vid+"_subs_"+t, innerHTML: p.vars.subs[t].label, title: p.getTranslation("Subtitle_to", p.vars.subs[t].label), onclick: function(e) {e.preventDefault(); p.vars.hideSubtitle = false; p.resetSubs(this.id);}});
+				LBP.createHTMLEl(navId, "div", {id: vid+"_subs_"+t, innerHTML: p.vars.subs[t].label, title: p.getTranslation("Subtitle_to", p.vars.subs[t].label), onclick: function() {p.vars.hideSubtitle = false; p.resetSubs(this.id);}});
 				/* do: set controls item to active subtitle lang */
 				if(p.vars.activeSubLang === t) {p.resetSubsControlItem(!p.vars.hideSubtitle);}
 			}
 		}
-		LBP.createHTMLEl(navId, "div", {id: vid+"_subs_off", innerHTML: p.getTranslation("Subtitle_set"), title: p.getTranslation("Subtitle_off"), onclick: function() {p.vars.hideSubtitle = true; p.setSubtitle(false); p.resetSubsControlItem(false); LBP.hideEl(LBP.$(navId));}});
+		LBP.createHTMLEl(navId, "div", {id: vid+"_subs_off", innerHTML: p.getTranslation("Subtitle_set"), title: p.getTranslation("Subtitle_off"), onclick: function() {p.setSubtitle(false); p.resetSubsControlItem(false); LBP.hideEl(LBP.$(navId));}});
 		LBP.addCssClass(navId, "elem_visible");
-		LBP.setCssStyle(navId, "top", "-"+parseInt(LBP.$(navId).offsetHeight + LBP.getElemBorderWidth(navId).top + LBP.getElemBorderWidth(navId).bottom + LBP.getElemMarginWidth(navId).top + LBP.getElemMarginWidth(navId).bottom, 10) + "px");
+		LBP.setCssStyle(navId, "top", "-"+parseInt(LBP.$(navId).offsetHeight + LBP.getElemBorderWidth(navId).top + LBP.getElemBorderWidth(navId).bottom + LBP.getElemPaddingWidth(navId).top + LBP.getElemPaddingWidth(navId).bottom + LBP.getElemMarginWidth(navId).top + LBP.getElemMarginWidth(navId).bottom, 10) + "px");
 		LBP.removeCssClass(navId, "elem_visible");
-	}(this, vid));
+	}(this));
 };
 /* fct: reset subtitle on user-click */
 LBP.prototype.resetSubs = function(lang) {
@@ -2676,8 +2517,7 @@ LBP.prototype.resolveSubs = function(src, lang, label, mt) {
 	/* innerFct: add track as subtitle */
 	var addTrack = function(mt, st, v) {
 		var isSub = !1, stl, t = "", time, txt = st[2], set;
-		// var regex = /^((?:\d\d:){2}\d\d,\d\d\d) --> ((?:\d\d:){2}\d\d,\d\d\d)/;	// .srt
-		var regex = /^((?:\d\d:){2}\d\d(?:,\d{0,3})?) --> ((?:\d\d:){2}\d\d(?:,\d{0,3})?)/;	// .srt
+		var regex = /^((?:\d\d:){2}\d\d,\d\d\d) --> ((?:\d\d:){2}\d\d,\d\d\d)/;	// .srt
 		var regex_vtt = /^((?:\d+:){0,1}\d\d:\d\d.\d\d\d) --> ((?:\d+:){0,1}\d\d:\d\d.\d\d\d)/; // .vtt
 		var regex_sbv = /^(\d{1,2}:\d\d:\d\d.\d\d\d),(\d{1,2}:\d\d:\d\d.\d\d\d)/; // .sbv + .sub
 
@@ -2983,13 +2823,7 @@ LBP.postExtend = function(fn, src) {
 };
 /* fct: add event to given object */
 LBP.addEvent = function(obj, type, fn) {
-	var o = (((typeof(obj) === "object") ? obj : LBP.$(obj)))||false;
-
-	if(!o) {return;}
-
-	/* do: fix elements "on"click events for touch devices */
-	var type = ((LBP.hasTouch) && type === "click")?"touchend":type;
-	
+	var o = ((typeof(obj) === "object") ? obj : LBP.$(obj));
 	if(o.addEventListener) {o.addEventListener(type, fn, false);}
 	else if(o.attachEvent) {
 		o['e'+type+fn] = fn;
@@ -3028,9 +2862,6 @@ LBP.mergeObjs = function(e, obj2) {var el = ((typeof(e) !== "string") ? e : LBP.
 /* fct: add css class to element */
 LBP.addCssClass = function(e, c) {
 	var el = ((typeof(e) === "object") ? e : LBP.$(e)), cn; if(el === null) {return;}
-	
-	if(typeof(el.classList) !== 'undefined' && typeof(el.classList.add) !== 'undefined') {cn = c.split(" "); for(var i=0; i<=cn.length; i++) {if(typeof cn[i] !== 'undefined') {el.classList.add(cn[i]);}} return;}
-	
 	cn = ((el.className.length > 0) ? el.className.split(" ") : []);
 	if(LBP.inArray(cn, c)) {return;}
 	else {cn.push(c); LBP.mergeObjs(el, {className: cn.join(" ")});}
@@ -3038,9 +2869,6 @@ LBP.addCssClass = function(e, c) {
 /* fct: add css class to element */
 LBP.removeCssClass = function(e, c) {
 	var el = ((typeof(e) === "object") ? e : LBP.$(e)), cn; if(el === null) {return;}
-	
-	if(typeof(el.classList) !== 'undefined' && typeof(el.classList.remove) !== 'undefined') {cn = c.split(" "); for(var i=0; i<=cn.length; i++) {if(typeof cn[i] !== 'undefined') {el.classList.remove(cn[i]);}} return;}
-	
 	cn = ((el.className.length > 0) ? el.className.split(" ") : []);
 	if(!LBP.inArray(cn, c)) {return;}
 	for(var i=0; i<cn.length; i++) {if(cn[i] === c){cn.splice(i,1); i--;}} LBP.mergeObjs(el, {className: cn.join(" ")});
@@ -3165,9 +2993,7 @@ LBP.getBrowserSizeXY = function(b) {
 		/* do: TV devices */
 		if(LBP.isTV) {intH = screen.height; intW = screen.width;}
 		/* do: non-IE */
-		else if(LBP.isRealFullscreen && typeof(screen)  !== 'undefined' && typeof(screen.width)  !== 'undefined' && typeof(screen.height)  !== 'undefined') {intH = screen.height; intW = screen.width;}
-		/* do: non-IE */
-		else if(typeof(w.innerWidth)  === 'number') {intH = w.innerHeight; intW = w.innerWidth;}
+		else if(typeof w.innerWidth  === 'number' ) {intH = w.innerHeight; intW = w.innerWidth;}
 		/* do: IE 6+ in 'standards compliant mode' */
 		else if((dEl = d.documentElement) && (dEl.clientWidth || dEl.clientHeight)) {intH = dEl.clientHeight; intW = dEl.clientWidth;}
 		/* do: IE 4 compatible */
@@ -3188,7 +3014,6 @@ LBP.resizeToBrowser = function(h,w, bsXY) {
 LBP.receiveIframeEvent = function(e) {
 	var data = false;
 	try {data = JSON.parse(e.data);} catch(_ex) {}
-
 	if(!!data && data.action === "setScreen") {
 		LBP.setIframeParentScreen(e);
 	} else if(!!data && data.action === "getCorsStatus") {
@@ -3198,17 +3023,15 @@ LBP.receiveIframeEvent = function(e) {
 			if(!cors) {iframe = (target.location !== window.location);}
 			target.postMessage(JSON.stringify({action: "setCorsStatus", vid: vid, cors: cors, iframe: iframe}), "*");
 		}
-		
-		// if(typeof(_LBP_IFrames[vid]) !== "undefined") {_LBP_IFrames[vid].hasEvent = false;}
 	}
 };
 /* fct: set (CORS) IFrame parent and notify via postMessage to IFrame player */
 LBP.setIframeParentScreen = function(e) {
 	var src = e.source, data = JSON.parse(e.data), fs = data.value, target = src.postMessage ? src : false;
-
+	
 	/* do: if not yet, create an IFrame object */
 	if(!!LBP.$(data.vid) && typeof(_LBP_IFrames[data.vid]) === "undefined") {_LBP_IFrames[data.vid] = {fullscreen: false, hasEvent: false};}
-
+	
 	if(fs !== _LBP_IFrames[data.vid].fullscreen) {
 		/* do: store fullscreen-value to IFrame object */
 		_LBP_IFrames[data.vid].fullscreen = fs;
@@ -3244,9 +3067,10 @@ LBP.setIframeParentScreen = function(e) {
 			LBP.addCssClass(ifr, "h5_lb_player_smallscreen");
 			
 		}
-
+		
 		/* do: postMessage to IFrame (target) to set up IFrame  inner-content */
 		if(!!target) {target.postMessage(JSON.stringify({action: "setScreen", value: data.value, vid: vid, bsXY: (!fs)?null:bsXY, cors: cors}), "*");}
+		
 		if(!_LBP_IFrames[vid].hasEvent) {
 			/* do: something if window size changed */
 			(function(e, data, _LBP_IFrames) {LBP.addEvent(window, "resize", function() {if(data.value && _LBP_IFrames[data.vid].fullscreen) {_LBP_IFrames[data.vid].fullscreen = !_LBP_IFrames[data.vid].fullscreen; LBP.setIframeParentScreen(e);}});}(e, data, _LBP_IFrames));
@@ -3254,7 +3078,7 @@ LBP.setIframeParentScreen = function(e) {
 		}
 	}
 };
-/* fct: try to fix iPads "on"click event - deprecated */
+/* fct: try to fix iPads "on"click event */
 LBP.fixTouch = function(o) {
 	if(!LBP.isMobile || !window.Touch) {return;}
 
@@ -3341,11 +3165,11 @@ LBP.parseTimer = function(t) {
 };
 /* fct: create (CORS) XHR */
 LBP.XHR = function(src) {
-	var xhr = null;
+	var xhr = false;
 	try {
 		try {
 			/* do: try to use CORS XHR */
-			if(XMLHttpRequest) {xhr = new XMLHttpRequest();	if(xhr || "withCredentials" in xhr) {xhr.open("GET", src, false);}}
+			if(XMLHttpRequest) {xhr = new XMLHttpRequest();	if(xhr) {xhr.open("GET", src, false); if("withCredentials" in xhr) {xhr.withCredentials = "true";}}}
 			else if(XDomainRequest) {xhr = new XDomainRequest(); xhr.open("GET", src);}
 		} catch(ex0) {try {xhr = new ActiveXObject("Msxml2.XMLHTTP");} catch (ex1) {try {xhr = new ActiveXObject("Microsoft.XMLHTTP");} catch(ex2) {}}}
 		if(xhr) {try{xhr.overrideMimeType("text/html; charset=UTF-8");} catch(ex3){} xhr.send();}
@@ -3371,18 +3195,12 @@ LBP.mergeObjs(LBP, {
 	/* var: initialize */
 	initialized: false,
 	/* var: options */
-	options: {},
-	/* var: LBP in real fullscreen mode */
-	isRealFullscreen: false,
-	/* do: use strict codec mode, then only canPlayType returning "probably" accepted */
-	strictCodecMode: false
+	options: {}
 });
 /* LBP Player Array */
 var _LBP_Player = [];
 /* LBP IFrame Array */
 var _LBP_IFrames = [];
-/* LBP IFrame Event */
-var _LBP_IFrameEvent = false;
 /**---------------------------------------------------------------*/
 /**---------------------- OS & Device Checks ---------------------*/
 /**---------------------------------------------------------------*/
@@ -3453,31 +3271,26 @@ LBP.onIOS = function(m, src, type) {
 	return;
 };
 /* do: set canPlayType extensions for browsers */
-LBP.pattern = ["(m[p|4][3|4|v|a|eg])", "(web[a|m])", "(og[v|g|a])", "(opus)", "(wav)"];
-LBP.patternCheck = [false, false, false, false, false];
 LBP.canPlayType = {
-	// chrome: /(\.m[p|4][3|4|v|a]|\.webm|\.og[v|g|a])/i, /* Google will drop MPEG4 support in upcoming versions */
-	// firefox: /(\.og[v|g|a])/i, /* also support for .webm in FF4+, support for .mp4 on windows using Windows Foundation Framework */
-	// maxthon: /(\.m[p|4][3|4|v|a]|\.webm|\.og[v|g|a])/i,
-	// mobile: /(\.m[p|4][3|4|v|a]|\.m3u8|\.ts)/i, /* mobile browsers (mobile safari, ...) mainly support .mp4; iOS also supports .m3u8- and .ts-streams */
-	// msie: /(\.m[p|4][4|v|a]|\.webm)/i, /* IE9 supports WebM "when the user has installed a VP8 codec"; recognized issues loading .m4v files in IE9 */
-	// opera: /(\.webm|\.og[v|g|a])/i,
-	// safari: /(\.m[p|4][3|4|v|a]|\.m3u8|\.ts)/i
+	chrome: /(\.m[p|4][3|4|v|a]|\.webm|\.og[v|g|a])/i, /* Google will drop MPEG4 support in upcoming versions */
+	firefox: /(\.og[v|g|a]|\.webm)/i, /* also support for .webm in FF4+ */
+	firefox3: /(\.og[v|g|a])/i,
+	maxthon: /(\.m[p|4][3|4|v|a]|\.webm|\.og[v|g|a])/i,
+	mobile: /(\.mp[3|4]|\.m3u8|\.ts)/i, /* mobile browsers (mobile safari, ...) mainly support .mp4; iOS also supports .m3u8- and .ts-streams */
+	msie: /(\.m[p|4][3|4|v|a]|\.webm)/i, /* IE9 supports WebM "when the user has installed a VP8 codec"; recognized issues loading .m4v files in IE9 */
+	opera: /(\.webm|\.og[v|g|a])/i,
+	safari: /(\.m[p|4][3|4|v|a]|\.m3u8|\.ts)/i
 };
 /* do: check useragents "version/x.y" > @param v */
-LBP.isOSVersion = function(v) {return (((/version|firefox\/(\d+\.\d+)/i.test(ua$)) && (RegExp.$1) >= v) ? true : false);};
+LBP.isOSVersion = function(v) {return (((/version\/(\d+\.\d+)/i.test(ua$)) && (RegExp.$1) >= v) ? true : false);};
 /* do: get mobile devices */
 LBP.isMobile = false; // mobile device
-LBP.hasTouch = 'ontouchstart' in window; // touch device
-LBP.isAndroid = (ua$.match(/android/i) !== null && (LBP.isMobile = true)); // Android
-LBP.isBlackBerry = (ua$.match(/blackberry/i) !== null && LBP.isOSVersion(6) && !LBP.isOSVersion(10) && (LBP.isMobile = true)); // BlackBerry 6
-LBP.isBB10 = (ua$.match(/bb10/i) !== null && (LBP.isMobile = true)); // BlackBerry 10
-LBP.isFennec = (ua$.match(/fennec|firefox/i) !== null && ua$.match(/android/i) !== null && (LBP.isMobile = true)); // Mozilla Firefox Mobile (Fennec)
-LBP.isOPRM = (ua$.match(/OPR/) !== null && ua$.match(/android/i) !== null && (LBP.isMobile = true)); // Opera Mobile
+LBP.isAndroid = ((ua$.match(/android/i) !== null || navigator.platform.match(/android/i) !== null) && (LBP.isMobile = true)); // Android
+LBP.isBlackBerry = (ua$.match(/blackberry/i) !== null && LBP.isOSVersion(6) && (LBP.isMobile = true)); // BlackBerry 6
 LBP.isIPad = (ua$.match(/ipad/i) !== null && (LBP.isMobile = true));							// iOS
 LBP.isIPhone = (ua$.match(/iphone/i) !== null && (LBP.isMobile = true));						// iOS
 LBP.isIPod = (ua$.match(/ipod/i) !== null && (LBP.isMobile = true));							// iOS
-LBP.isPlaybook = (((ua$.match(/playbook.*rim tablet os/i) !== null) || (ua$.match(/blackberry/i) !== null && LBP.isOSVersion(10))) && (LBP.isMobile = true));		// BlackBerry PlayBook Tablet or BlackBerry 10
+LBP.isPlaybook = (ua$.match(/playbook.*rim tablet os/i) !== null && (LBP.isMobile = true));		// BlackBerry PlayBook Tablet
 LBP.isWebOS = (ua$.match(/webos|wosbrowser|hpwos/i) !== null && (LBP.isMobile = true));			// HP/Palm webOS
 LBP.isWebOS3 = (LBP.isWebOS && (/wosbrowser\/(\d+\.\d+)/i.test(ua$)) && RegExp.$1 >= 234.76 && (LBP.canPlayType.safari = /(\.mp4|\.m4v|\.og[g|a])/i));			// HP/Palm webOS > 3.0.4 (Tablet)
 LBP.isWP7 = (ua$.match(/windows\sphone\sos\s7/i) !== null && ((/MSIE\s([0-9]{1,}[\.0-9]{0,})/i.test(ua$)) && (RegExp.$1) >= 9) && (LBP.isMobile = true));	// Microsoft Windows Phone 7.5 (Mango) with IE9.x
@@ -3485,38 +3298,7 @@ LBP.isWP7 = (ua$.match(/windows\sphone\sos\s7/i) !== null && ((/MSIE\s([0-9]{1,}
 LBP.iOSVersion = ((/os[\s](\d+\_\d+)/i.test(ua$)) ? ((RegExp.$1).replace("_", ".")) : 0);	// iOS < 4.x poster-bug, iOS > 4.2 supports LeanBack Player
 LBP.AndroidVersion = ((/android[\s](\d+\.\d+)/i.test(ua$)) ? (RegExp.$1) : 0);				// Android >= 2.3 supports also <audio>-tag
 /* do: get desktop browser */
-// LBP.isBrowser = ((ua$.match(/mobi[l|e|le]/i) !== null && ua$.match(/fennec/i) === null && (LBP.isMobile = true)) 
-	// ? "mobile" 
-	// : ((ua$.match(/msie/i) !== null) 
-		// ? "msie" 
-		// : ((ua$.match(/firefox/i) !== null && ((LBP.isOSVersion(4)) ? LBP.canPlayType.firefox = (/(\.webm|\.og[v|g|a])/i) : true/*(LBP.isOSVersion(20) ? LBP.canPlayType.firefox = (/(\.m[p|4][3|4|v|a]|\.webm|\.og[v|g|a])/i) : true)*/)) 
-			// ? "firefox" 
-			// : ((/chrom(?:(e)|(ium))\/(\d+\.\d+)/i.test(ua$) && ((RegExp.$2) ? LBP.canPlayType.chrome = (/(\.webm|\.og[v|g|a])/i) : true)) 
-				// ? "chrome" 
-				// : ((ua$.match(/opera/i) !== null && (!LBP.isMobile && LBP.isOSVersion(10.5) && (LBP.canPlayType.opera = ((!LBP.isOSVersion(10.6)) ? /(\.og[v|g|a])/i : LBP.canPlayType.opera))) || (LBP.isMobile && LBP.isOSVersion(12.0) && (LBP.canPlayType.opera = /(\.mp4|\.og[g|a])/i))) 
-					// ? "opera" 
-					// : (((/maxthon\/(\d+\.\d+)/i.test(ua$)) && (RegExp.$1) >= 3) 
-						// ? "maxthon" 
-						// : ((ua$.match(/epiphany\/(\d+\.\d+)\.(\d+)/i) !== null && ((RegExp.$1) > 2.30 || ((RegExp.$1) >= 2.30 && (RegExp.$2) >= 6))) 
-							// ? "safari" 
-							// : ((ua$.match(/safari/i) !== null) 
-								// ? "safari" : false))))))));
-LBP.isBrowser = ((ua$.match(/mobi[l|e|le]/i) !== null && ua$.match(/fennec/i) === null && (LBP.isMobile = true)) 
-	? "mobile" 
-	: ((ua$.match(/msie/i) !== null || ua$.match(/Trident\/.*rv:([0-9]{1,}[\.0-9]{0,})/i) !== null) // for MSIE <= 10 or MSIE 11 on Windows 8.1
-		? "msie" 
-		: ((ua$.match(/firefox/i) !== null) 
-			? "firefox" 
-			: ((ua$.match(/opera|OPR/i) !== null || LBP.isOPRM)
-				? "opera" 
-				: ((ua$.match(/chrom(?:(e)|(ium))/i) !== null) 
-					? "chrome" 
-					: ((ua$.match(/maxthon/i) !== null) 
-						? "maxthon" 
-						: ((ua$.match(/epiphany/i) !== null)
-							? "safari" 
-							: ((ua$.match(/safari/i) !== null) 
-								? "safari" : false))))))));
+LBP.isBrowser = ((ua$.match(/mobi[l|e|le]/i) !== null && (LBP.isMobile = true)) ? "mobile" : ((ua$.match(/msie/i) !== null) ? "msie" : ((ua$.match(/firefox/i) !== null && ((/fennec/i.test(ua$).$2) ? (LBP.canPlayType.mobile = (/(\.og[v|g|a])/i) && (LBP.isMobile = true)) : true)) ? ((ua$.match(/firefox\/3./i) !== null) ? "firefox3" : "firefox") : ((/chrom(?:(e)|(ium))\/(\d+\.\d+)/i.test(ua$) && ((RegExp.$2) ? LBP.canPlayType.chrome = (/(\.webm|\.og[v|g|a])/i) : true)) ? "chrome" : ((ua$.match(/opera/i) !== null && (!LBP.isMobile && LBP.isOSVersion(10.5) && (LBP.canPlayType.opera = ((!LBP.isOSVersion(10.6)) ? /(\.og[v|g|a])/i : LBP.canPlayType.opera))) || (LBP.isMobile && LBP.isOSVersion(12.0) && (LBP.canPlayType.opera = /(\.mp4|\.og[g|a])/i))) ? "opera" : (((/maxthon\/(\d+\.\d+)/i.test(ua$)) && (RegExp.$1) >= 3) ? "maxthon" : ((ua$.match(/epiphany\/(\d+\.\d+)\.(\d+)/i) !== null && ((RegExp.$1) > 2.30 || ((RegExp.$1) >= 2.30 && (RegExp.$2) >= 6))) ? "safari" : ((ua$.match(/safari/i) !== null) ? "safari" : false))))))));
 LBP.isDesktop = (navigator.platform.match(/win[dows|32|64]|mac|unix|linux/i) !== null && !LBP.isMobile);	// desktop browsers
 /* do: get TV devices */
 LBP.isTV = (navigator.platform.match(/googletv|large\sscreen/i) !== null);			// TV devices like GoogleTV platform
@@ -3549,7 +3331,7 @@ LBP.checkSources = function(m, type) {
 		if(typeof(elObj.getAttribute("id")) === "undefined" || elObj.getAttribute("id") === null) {LBP.mergeObjs(elObj, {id: "leanback-player-fallback-"+tag+"-"+Math.random(new Date().getMilliseconds()*Math.random())});}
 
 		/* do: add all element-object attributes to el */
-		for(var i=0, j=attr.length; i<j; i++) {el.setAttribute(attr[i].nodeName, attr[i].value||attr[i].nodeValue);}
+		for(var i=0, j=attr.length; i<j; i++) {el.setAttribute(attr[i].nodeName, attr[i].nodeValue);}
 		/* do: add element to a parent div to get innerHTML */
 		el.innerHTML = elh; elPar.appendChild(el);
 
@@ -3571,15 +3353,11 @@ LBP.checkSources = function(m, type) {
     }
 
 	/* innerFct: get canPlayType */
-	var getPlayType = function(t) {return (t !== "" && ((LBP.strictCodecMode && t === "probably") ||(!LBP.strictCodecMode && (t === "probably" || t === "maybe")))) ? true : false;};
-	var suppPlayType = "", r1 = false, r2 = false, r3 = false, r4 = false, r5 = false;
-	var pattern = LBP.pattern.join("|").replace(/true\|/gi, ""), regex = new RegExp(pattern, "i");
+	var getPlayType = function(t) {return (t !== "" && (t === "probably" || t === "maybe")) ? true : false;};
 
-	LBP.canPlayType[LBP.isBrowser] = /()/i;
-	if(typeof(LBP.canPlayType["default"]) === "undefined") {LBP.canPlayType["default"] = "";}
-	
 	/* do: break if not able to run HTML5 media */
 	if(!!!document.createElement('video').canPlayType || !!!document.createElement('audio').canPlayType) {return r;}
+
 	/* do: prepair HTML5 media element */
 	for(var i=0; i<c.length; i++) {
 		if(typeof(c[i]) === "undefined" && typeof(c[i].tagName) === "undefined" && i < c.length) {continue;}
@@ -3587,50 +3365,14 @@ LBP.checkSources = function(m, type) {
 		if(typeof(c[i].className) !== "undefined" && c[i].tagName.toLowerCase() === "source") {
 			/* do: normalize tag attributes */
 			var tagAttr = c[i].attributes, ntag = {};
-			for(var k=0, l=tagAttr.length; k<l; k++) {ntag[tagAttr[k].nodeName] = tagAttr[k].value||tagAttr[k].nodeValue;}
-			
+			for(var k=0, l=tagAttr.length; k<l; k++) {ntag[tagAttr[k].nodeName] = tagAttr[k].nodeValue;}
 			/* do: check for type definition; due to firefox 3.x (and others??) does not like attribute eg. type="video/ogg; codecs='theora, vorbis'", should be type='video/ogg; codecs="theora, vorbis"' */
-			var t = (((/\'/).test(ntag.type)) ? (ntag.type).replace(/\'/g, '"') : ntag.type).split(";"), ttype = t[0], tcodec = (t[1])?t[1].replace(/\scodecs=\"(.*)\"$/g, "$1"):false;
-			
-			/* do: get canPlayType information with the above type t - issue in chrome we need to check for "probably" for opus codec */
-			var playType = getPlayType(m.canPlayType(ntag.type)); //(/opus/.test(tcodec) && m.canPlayType(ntag.type) === "probably")?true:(!ntag.src.match(/opus/))?getPlayType(m.canPlayType(ntag.type)):false;
-// console.log("--");
-// console.log(t);
-// console.log(m.canPlayType(ntag.type));
-			/* do: dynamically create LBP.canPlayType[LBP.isBrowser] file-type support pattern */
-			regex.test(ttype);
-// console.log(ttype);
-// console.log(tcodec);
-// console.log(playType);
-			if(playType && LBP.patternCheck[0] !== true && RegExp.$1) {
-				LBP.canPlayType["default"] += ((LBP.canPlayType["default"].length > 0)?"|":"")+"\."+LBP.pattern[0];
-				LBP.patternCheck[0] = true;
-			}
-			if(playType && LBP.patternCheck[1] !== true  && RegExp.$2) {
-				LBP.canPlayType["default"] += ((LBP.canPlayType["default"].length > 0)?"|":"")+"\."+LBP.pattern[1];
-				LBP.patternCheck[1] = true;
-			}
-			if(playType && LBP.patternCheck[2] !== true  && RegExp.$3 && !ntag.src.match(/opus/)) {
-				LBP.canPlayType["default"] += ((LBP.canPlayType["default"].length > 0)?"|":"")+"\."+LBP.pattern[2];
-				LBP.patternCheck[2] = true;
-			}
-			if(playType && LBP.patternCheck[3] !== true && ntag.src.match(/opus/) && type === "audio") {
-				LBP.canPlayType["default"] += ((LBP.canPlayType["default"].length > 0)?"|":"")+"\."+LBP.pattern[3];
-				LBP.patternCheck[3] = true;
-			}
-			if(playType && LBP.pattern[4] !== true && RegExp.$5) {
-				LBP.canPlayType["default"] += ((LBP.canPlayType["default"].length > 0)?"|":"")+"\."+LBP.pattern[4];
-				LBP.patternCheck[4] = true;
-			}
-
-			/* do: overwrite standard LBP.canPlayType[LBP.isBrowser] */
-			if(playType && (LBP.patternCheck[0] || LBP.patternCheck[1] || LBP.patternCheck[2] || LBP.patternCheck[3] || LBP.patternCheck[4])) {
-				LBP.canPlayType[LBP.isBrowser] = new RegExp(LBP.canPlayType["default"], "i");
-			}
-// console.log(LBP.canPlayType[LBP.isBrowser]);
+			var t = (((/\'/).test(ntag.type)) ? (ntag.type).replace(/\'/g, '"') : ntag.type);
+			/* do: get canPlayType information with the above type t */
+			var playType = getPlayType(m.canPlayType(t));
 			/* do: test src type */
-			var srcType = (LBP.options.checkExtensions) ? (LBP.canPlayType[LBP.isBrowser]).test(ntag.src) : true;
-// console.log(LBP.options.checkExtensions);
+			var srcType = (LBP.canPlayType[LBP.isBrowser]).test(ntag.src);
+
 			/* do: check for MS WP7.x and prepare audio for LBP */
 			if(LBP.isWP7 && type === "audio") {LBP.isMobile = !0; LBP.isDesktop = !0;}
 
@@ -3642,25 +3384,25 @@ LBP.checkSources = function(m, type) {
 			} else
 			/* do: check for Palm BlackBerry, HP WebOS, MS WP7.x or Android devices */
 			if(((LBP.isWebOS || LBP.isBlackBerry || LBP.isWP7) && LBP.isMobile && playType && (type === "video" || (type === "audio" && ntag.src.match(/mp3/)))) || (LBP.isAndroid && ((LBP.AndroidVersion >= 2.0 && type == "video") || (LBP.AndroidVersion >= 2.3 && (type == "video" || type == "audio"))) && srcType)) {
-				/* do: handle media, playableSource, mediatype for mobile */
+				/* @media, @playableSource, @mediatype */
 				LBP.onMobileDevice(m, ntag.src, type);
 				LBP.playerCount++;
 				r.lbp = false; r.os = false;
 				break;
 			} else
 			/* do: check for iOS devices */
-			if((((LBP.iOSVersion < 4.2 && LBP.isIPad) || (LBP.iOSVersion >= 4.2 && LBP.isIPad && (typeof(LBP.options.defaultIPadControls) !== "undefined" & LBP.options.defaultIPadControls))) || ((LBP.isIPhone && type !== "audio") || (LBP.isIPhone && type === "audio" && LBP.iOSVersion < 4.2)) || LBP.isIPod) && srcType) {
-				/* do: handle media, playableSource, mediatype for iOS */
+			if((((LBP.iOSVersion < 4.2 && LBP.isIPad) || (LBP.iOSVersion >= 4.2 && LBP.isIPad && (typeof(LBP.options.defaultIPadControls) !== "undefined" & LBP.options.defaultIPadControls))) || LBP.isIPhone || LBP.isIPod) && srcType) {
+				/* @video, @playableSource, @mediatype */
 				LBP.onIOS(m, ntag.src, type);
 				LBP.playerCount++;
 				r.lbp = false; r.os = true;
 				break;
 			} else
 			/* do: check for other browsers and devices */
-			if((playType && (LBP.isDesktop || LBP.isTV) && (LBP.isBrowser && srcType)) || ((LBP.isIPad || (LBP.isIPhone && type === "audio")) && srcType) || ((LBP.isFennec || LBP.isBB10 || LBP.isOPRM) && srcType)) {
+			if((playType && (LBP.isDesktop || LBP.isTV) && (LBP.isBrowser && srcType)) || (LBP.isIPad && srcType)) {
 				var l = ((r.srcs.length !== "undefined") ? r.srcs.length : 0);
 				if(r.src === null) {r.src = ntag.src;}
-				if(!LBP.isIPad && !LBP.isIPhone){r.srcs[l] = {src: ntag.src, type: ((/video\/(mp4|webm|ogg)/i.test(t)) ? RegExp.$1 : null)};}
+				if(!LBP.isIPad){r.srcs[l] = {src: ntag.src, type: ((/video\/(mp4|webm|ogg)/i.test(t)) ? RegExp.$1 : null)};}
 				r.lbp = true; r.os = false;
 			} else
 			/* do: return if not a supported desktop browser but HTML5 media is supported */
@@ -3669,44 +3411,7 @@ LBP.checkSources = function(m, type) {
 			if(LBP.isMobile) {r.flash = {};}
 		}
 	}
-// console.log(LBP.canPlayType[LBP.isBrowser]);
     return r;
-};
-/* fct: handle data-* attributes as dataset or attribute of element */
-LBP.dataAttr = function(el, elOptions, dss, ds, extKey) {
-	/* innerFct: get key-value */
-	var keyVal = function(v) {
-		return ((aval === "true")?true:(aval === "false")?false:(!isNaN(parseFloat(aval)))?parseFloat(aval):(/^\[.*\]$/.test(aval))?eval(aval):(/^\{.*\}$/.test(aval))?JSON.parse(aval):aval);
-	};
-	/* do: if data-* attributes are supported in browser */
-	if(typeof(el.dataset) !== 'undefined') {
-		for(var k in el.dataset) {
-			if(typeof(el.dataset[k]) === "function"){continue;}
-			var aval = el.dataset[k];
-			
-			if(typeof(dss) !== 'undefined' && typeof(ds) !== 'undefined' && typeof(extKey) === 'undefined') {
-				if(!LBP.inArray(dss, k)){continue;}
-				elOptions[ds[dss.indexOf(k)]] = keyVal(aval);
-			} else if(typeof(extKey) !== 'undefined') {
-				if(k.indexOf(extKey) !== 0){continue;}
-				elOptions[k.replace(extKey, "")] = keyVal(aval);
-			}
-		}
-	} else {
-		for(var i=0; i<el.attributes.length; i++) {
-			if(el.attributes[i].name.indexOf("data-") !== 0) {continue;}
-			var aname = el.attributes[i].name, akey = aname.replace("data-", "").toLowerCase(), aval = el.attributes[i].value;
-
-			if(typeof(dss) !== 'undefined' && typeof(ds) !== 'undefined' && typeof(extKey) === 'undefined') {
-				if(!LBP.inArray(dss, akey)){continue;}
-				elOptions[ds[dss.indexOf(akey.toLowerCase())]] = keyVal(aval);
-			} else if(typeof(extKey) !== 'undefined') {
-				if(akey.indexOf(extKey) !== 0){continue;}
-				elOptions[akey.replace(extKey, "")] = keyVal(aval);
-			}
-		}
-	}
-	return elOptions;
 };
 /* fct: setup players on document */
 LBP.setup = function() {
@@ -3738,25 +3443,16 @@ LBP.setup = function() {
 		if(m.hasAttribute("muted")) {m.muted = true;}
 
 		/* do: hide default controls if not iPad */
-		if(!LBP.isIPad && !LBP.isIPhone) {m.controls = false;}
+		if(!LBP.isIPad) {m.controls = false;}
 
 		return vars;
 	};
-	
-	/* do: get defined options from LBP-Object to be used as data-attributes */
-	var pl = new LBP(), ds = [];
-	for(var key in pl.options) {ds.push(key);} pl = undefined;
-	var dss = (ds.join("|").toLowerCase()).split("|");
-	
+
 	/* video player */
 	var vels = document.getElementsByTagName("video")||[];
 	for(var j=0; j<vels.length; j++) {
-		var vvars = {}, v = vels[j], pv = v.parentNode, elOptions = LBP.options;
-		
-		/* do: handle dataset attributes as LBP.options */
-		elOptions = LBP.dataAttr(pv, elOptions, dss, ds);
-
-		if(typeof(pv.hasAttribute) === 'undefined' || !pv.hasAttribute("class") || (pv.hasAttribute("class") && !pv.getAttribute("class").match(/leanback-player-video/))) {continue;}
+		var vvars = {}, v = vels[j], pv = v.parentNode;
+		if(!pv.hasAttribute("class") || (pv.hasAttribute("class") && !pv.getAttribute("class").match(/leanback-player-video/))) {continue;}
 		var vv = LBP.checkSources(v, "video");
 		if(vv.lbp) {
 			LBP.mergeObjs(vvars, {embedCode: pv.innerHTML});
@@ -3769,7 +3465,7 @@ LBP.setup = function() {
 			if(!!LBP.getPlayer(vid)) {continue;}
 
 			/* do: handle some player vars */
-			o = {options: LBP.mergeObjs({vid: vid, pid: pvid}, elOptions), vars: handlePlayer(v, true, vvars, vv)};
+			o = {options: LBP.mergeObjs({vid: vid, pid: pvid}, LBP.options), vars: handlePlayer(v, true, vvars, vv)};
 
 			/* do: create reference for video element to handle */
 			_LBP_Player.push(new LBP(o.options, o.vars, v));
@@ -3783,12 +3479,8 @@ LBP.setup = function() {
 	/* audio player */
 	var aels = document.getElementsByTagName("audio")||[];
 	for(var i=0; i<aels.length; i++) {
-		var avars = {}, a = aels[i], pa = a.parentNode, elOptions = LBP.options;
-		
-		/* do: handle dataset attributes as LBP.options */
-		elOptions = LBP.dataAttr(pa, elOptions, dss, ds);
-		
-		if(typeof(pa.hasAttribute) === 'undefined' || !pa.hasAttribute("class") || (pa.hasAttribute("class") && !pa.getAttribute("class").match(/leanback-player-audio/))) {continue;}
+		var avars = {}, a = aels[i], pa = a.parentNode;
+		if(!pa.hasAttribute("class") || (pa.hasAttribute("class") && !pa.getAttribute("class").match(/leanback-player-audio/))) {continue;}
 		var va = LBP.checkSources(a, "audio");
 		if(va.lbp) {
 			LBP.mergeObjs(avars, {embedCode: pa.innerHTML});
@@ -3796,6 +3488,7 @@ LBP.setup = function() {
 			LBP.mergeObjs(pa, {id: paid});
 			var aid = ((a.getAttribute("id") !== null) ? a.id : "leanback-audio-id"+i);
 			LBP.mergeObjs(a, {id: aid, tabIndex: "0"});
+
 			/* do: continue if reference to player already stored */
 			if(!!LBP.getPlayer(aid)) {continue;}
 
@@ -3816,10 +3509,8 @@ LBP.setup = function() {
 	
 	/* IFrame player */
 	var iels = document.getElementsByTagName("iframe")||false;
-	if(!!iels && iels.length > 0 && !window._LBP_IFrameEvent) {
-		// window.addEventListener("message", LBP.receiveIframeEvent, false);
-		LBP.addEvent(window, "message", LBP.receiveIframeEvent);
-		window._LBP_IFrameEvent = true;
+	if(!!iels && iels.length > 0) {
+		window.addEventListener("message", LBP.receiveIframeEvent, false);
 	}
 
 	/* do: set LBP initialized after first call */
@@ -3853,7 +3544,5 @@ LBP.onDOMReady(LBP.init);
 /**-------------------- LEANBACK PLAYER ABOVE --------------------*/
 /**---------------------------------------------------------------*/
 window.LBP = LBP;
-window._LBP_IFrameEvent = _LBP_IFrameEvent;
 // window._LBP_Player = _LBP_Player;
-// window._LBP_IFrames = _LBP_IFrames;
 })(this);
