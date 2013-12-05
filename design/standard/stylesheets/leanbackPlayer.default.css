@@ -17,8 +17,8 @@
 /* IFrame Settings */
 iframe.h5_lb_player_smallscreen::-webkit-scrollbar, iframe.h5_lb_player_fullscreen::-webkit-scrollbar {display: none;}
 iframe.h5_lb_player_fullscreen {
-	position: fixed; top: 0; left: 0; border: 0;
-	z-index: 1004;
+	position: absolute !important; top: 0; left: 0; border: 0;
+	z-index: 9999;
 }
 iframe.h5_lb_player_smallscreen {
 	margin: 0 !important; padding: 0 !important; overflow: hidden;
@@ -41,7 +41,7 @@ body.h5_lb_iframe {
 .h5_lb_smallscreen {position: relative; margin: auto; text-align: center;}
 .h5_lb_fullscreen {position: fixed !important; top: 0; left: 0; margin: auto; text-align: center; border: 0; background: #000; z-index: 9999;}
 .h5_lb_fullscreen .h5_lb_video {border: 0;}
-.h5_lb_unfocused {/*opacity: 0.7;*/opacity: 1.0;}
+.h5_lb_unfocused {opacity: 0.7;}
 .h5_lb_unfocused:hover {opacity: 1.0;}
 /*******************/
 /* Big Play Button */
@@ -351,7 +351,7 @@ body.h5_lb_iframe {
 .h5_lb_controls div.h5_lb_sources_control:hover div.sources_nav {display: block; padding: 2px;}
 .h5_lb_controls div.h5_lb_sources_control div.sources_nav div {border-top: 1px solid transparent; color: #fff; font: 10px/1.231 "bitstream vera sans", "lucida grande", verdana !important; text-shadow: 1px 1px 1px rgba(0,0,0,0.5); height: 16px; padding: 2px 4px 0; margin: 0;}
 .h5_lb_controls div.h5_lb_sources_control div.sources_nav div span {vertical-align: text-top; font-weight: lighter; font: 8px/1.231 "bitstream vera sans", "lucida grande", verdana !important; padding: 0;}
-.h5_lb_controls div.h5_lb_sources_control .sources_nav div:hover {color: #000; color: rgba(255,255,255, 1); background: #f1f1f1; background: rgba(255,255,255, 0.1); border-top: 1px solid #f1f1f1; border-top: 1px solid rgba(255,255,255, 0.1); text-shadow: 1px 1px 1px #000; display: block; z-index: 1001;}
+.h5_lb_controls div.h5_lb_sources_control .sources_nav div:hover {color: #000; color: rgba(255,255,255, 1); background: #f1f1f1; background: rgba(255,255,255, 0.1); border-top: 1px solid #f1f1f1; border-top: 1px solid rgba(255,255,255, 0.1); text-shadow: 1px 1px 1px #000; display: block; z-index: 1003;}
 /***********************************/
 /* Fullscreen Control: Inner Items */
 .h5_lb_controls div.h5_lb_fullscreen_control div {
@@ -509,6 +509,24 @@ body.h5_lb_iframe {
 }
 .about_txt div {
 	padding: 10px;
+}
+/*********************/
+/* LBP Control Item */
+.h5_lb_player a.h5_lb_logo {
+	position: absolute; display: block;
+	width: 121px; height: 15px; top: auto; bottom: 32px; right: 10px;
+	cursor: pointer;
+	z-index: 1002;
+}
+.h5_lb_player a.h5_lb_logo,
+.h5_lb_player a.h5_lb_logo:link,
+.h5_lb_player a.h5_lb_logo:visited,
+.h5_lb_player a.h5_lb_logo:hover,
+.h5_lb_player a.h5_lb_logo:active {
+	text-decoration: none;
+	outline: 0;
+	/* fix: prevent button to be focused on Android */
+	-webkit-tap-highlight-color: rgba(0,0,0,0);
 }
 /*******************/
 /* Default Content */
