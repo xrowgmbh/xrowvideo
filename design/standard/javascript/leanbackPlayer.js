@@ -1431,7 +1431,8 @@ LBP.prototype.initializeSources = function(j) {
 	(function(p) {
 		var onloadedmetadata = function() {
 			var id = (/[^_]+$/.exec(this.id))[0];
-			p.vars.playableSources[id].res = ((p.vars.playableSources[id].video.videoHeight >= 2000) ? "2K" : ((p.vars.playableSources[id].video.videoHeight >= 1080) ? 1080 : ((p.vars.playableSources[id].video.videoHeight >= 720) ? 720 : ((p.vars.playableSources[id].video.videoHeight >= 480) ? 480 : ((p.vars.playableSources[id].video.videoHeight >= 360) ? 360 : ((p.vars.playableSources[id].video.videoHeight >= 235) ? 240 : ((p.vars.playableSources[id].video.videoHeight >= 175) ? 180 : "SD")))))));
+			p.vars.playableSources[id].res = p.vars.playableSources[id].video.videoHeight;
+			//p.vars.playableSources[id].res = ((p.vars.playableSources[id].video.videoHeight >= 2000) ? "2K" : ((p.vars.playableSources[id].video.videoHeight >= 1080) ? 1080 : ((p.vars.playableSources[id].video.videoHeight >= 720) ? 720 : ((p.vars.playableSources[id].video.videoHeight >= 480) ? 480 : ((p.vars.playableSources[id].video.videoHeight >= 360) ? 360 : ((p.vars.playableSources[id].video.videoHeight >= 235) ? 240 : ((p.vars.playableSources[id].video.videoHeight >= 175) ? 180 : "SD")))))));
 			p.vars.playableSources[id].type = ((p.vars.playableSources[id].video.videoHeight >= 2000) ? "" : ((p.vars.playableSources[id].video.videoHeight >= 1080) ? "HD" : ((p.vars.playableSources[id].video.videoHeight >= 720) ? "HD" : ((p.vars.playableSources[id].video.videoHeight >= 480) ? "SD" : ((p.vars.playableSources[id].video.videoHeight >= 360) ? "SD" : "")))));
 			LBP.mergeObjs(this, {src: ""}); try{this.load();}catch(ex2){}
 
