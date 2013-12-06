@@ -167,18 +167,8 @@
         </div>
      </div>
     {if $media_tag|eq( 'video' )}
-        {literal}
-            <script type="text/javascript">
-                 function supports_video() { return !!document.createElement('video').canPlayType; }
-                 if (supports_video()) 
-                 {
-                     document.write('<div class="change-video"><p><span class="flash-version">Flash-Version</span><b class="separator-video"> | </b><span class="video-download">Video-Download</span></p></div>');
-                 } else {
-                     document.write('<div class="change-video"><p><span class="video-download">Video-Download</span></p></div>');
-                 }
-            </script>
-        {/literal}
-    
+        <div class="change-video video_with_html5"><p><span class="flash-version">Flash-Version</span><b class="separator-video"> | </b><span class="video-download">Video-Download</span></p></div>
+        <div class="change-video video_with_nohtml5"><p><span class="video-download">Video-Download</span></p></div>
         <div class="download-info" style="display:none;clear:left;">
              <strong>Download Video:</strong>
              {foreach $objects as $key => $item}
