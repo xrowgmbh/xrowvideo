@@ -10,11 +10,10 @@ LBP.options = {
 /*Feature #5636*/
 $(document).ready(function(){
     function supports_video() { return !!document.createElement('video').canPlayType; }
-    if (supports_video()) 
+    if (!supports_video()) 
     {
-        $('.video_with_nohtml5').hide();
-    } else {
         $('.video_with_html5').hide();
+        $('.video_with_nohtml5').css("display","block");
     }
    
     $('.video-download').bind('click', function()

@@ -149,26 +149,28 @@
            </{$media_tag}>
         <!--<![endif]--> 
     </div>
-    <div class="extra-flash-video" style="display:none;width:{$width}px;height:{$height}px;">
-        {* Fallback Flash *}
-        {def $path_fallback = concat( 'xrowvideo/download/', $attribute.contentobject_id, '/', $attribute.id, '/', $attribute.version, '/', $fallback_object.src|rawurlencode )|ezurl( 'no', 'full' )}
-            <object class="leanback-player-flash-fallback extra-flash-video" {$fallback_attributes} type="application/x-shockwave-flash" data="http://releases.flowplayer.org/swf/flowplayer.swf">
-               <param name="movie" value="http://releases.flowplayer.org/swf/flowplayer.swf" />
-               <param name="allowFullScreen" value="true" />
-               <param name="wmode" value="transparent" />
-               <param name="bgcolor" value="#000000" />
-               <param name="flashVars" value="config={ldelim}'clip':{ldelim}'url':'{$path_fallback}','autoPlay':{cond( $attribute.content.settings.autoplay, 'true', 'false')},'autobuffering':true{rdelim}{rdelim}" />
-            </object>
-        {* Fallback HTML *}
-        <div class="leanback-player-html-fallback" {$fallback_attributes}>
-            {if $media_tag|eq( 'video' )}
-                <img src="{$image_url}" {$fallback_attributes} alt="Poster Image" title="No HTML5-Video playback capabilities found. Please download the video(s) below." />
-            {/if}
-        </div>
-     </div>
+
     {if $media_tag|eq( 'video' )}
+        <div class="extra-flash-video" style="display:none;width:{$width}px;height:{$height}px;">
+            {* Fallback Flash *}
+            {def $path_fallback = concat( 'xrowvideo/download/', $attribute.contentobject_id, '/', $attribute.id, '/', $attribute.version, '/', $fallback_object.src|rawurlencode )|ezurl( 'no', 'full' )}
+                <object class="leanback-player-flash-fallback extra-flash-video" {$fallback_attributes} type="application/x-shockwave-flash" data="http://releases.flowplayer.org/swf/flowplayer.swf">
+                   <param name="movie" value="http://releases.flowplayer.org/swf/flowplayer.swf" />
+                   <param name="allowFullScreen" value="true" />
+                   <param name="wmode" value="transparent" />
+                   <param name="bgcolor" value="#000000" />
+                   <param name="flashVars" value="config={ldelim}'clip':{ldelim}'url':'{$path_fallback}','autoPlay':{cond( $attribute.content.settings.autoplay, 'true', 'false')},'autobuffering':true{rdelim}{rdelim}" />
+                </object>
+            {* Fallback HTML *}
+            <div class="leanback-player-html-fallback" {$fallback_attributes}>
+                {if $media_tag|eq( 'video' )}
+                    <img src="{$image_url}" {$fallback_attributes} alt="Poster Image" title="No HTML5-Video playback capabilities found. Please download the video(s) below." />
+                {/if}
+            </div>
+        </div>
+    
         <div class="change-video video_with_html5"><p><span class="flash-version">Flash-Version</span><b class="separator-video"> | </b><span class="video-download">Video-Download</span></p></div>
-        <div class="change-video video_with_nohtml5"><p><span class="video-download">Video-Download</span></p></div>
+        <div class="change-video video_with_nohtml5" style="display:none;"><p><span class="video-download">Video-Download</span></p></div>
         <div class="download-info" style="display:none;clear:left;">
              <strong>Download Video:</strong>
              {foreach $objects as $key => $item}
