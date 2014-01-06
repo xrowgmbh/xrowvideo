@@ -91,7 +91,7 @@ body.h5_lb_iframe {
 /***************/
 /* Control Bar */
 .h5_lb_controls {
-    position: absolute; top: auto; right: -1px; bottom: -1px; left: 1px; height: 29px; cursor: default; z-index: 901;
+    position: relative; top: auto; bottom: 3px; height: 29px; cursor: default; z-index: 901;
     /* Border */
     border-top: 1px solid #000;
     /* Disable selection */
