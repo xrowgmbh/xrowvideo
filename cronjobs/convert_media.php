@@ -89,6 +89,7 @@ while( true )
                             $bitrates = $ini->variable( 'xrowVideoSettings', 'Bitrates' );
                             $convertFile = false;
                             $convertFileOriginal = false;
+                            $convertFileOriginalBlock = false;
                             $smallestBitrate = end( $bitrates );
                             $counter = 0;
                             foreach( $bitrates as $bitratekey )
@@ -99,15 +100,14 @@ while( true )
                                     if( $convertCommandBlock['Height'] <= $originalFileAttributes['height'] )
                                     {
                                         $convertFile = true;
-                                        if( $convertCommandBlock['Height'] < $originalFileAttributes['height'] && $convertFileOriginal === false )
+                                        // check whether the originalFile height is also in the $convertCommandBlock['Height']
+                                        if( $convertCommandBlock['Height'] == $originalFileAttributes['height'] && $convertFileOriginal === false )
                                         {
                                             $convertFileOriginal = true;
-                                            $cli->output( '' );
-                                            $cli->output( '--------------------------------------------------------------' );
-                                            $cli->output( 'Converting additionally to ORIGINAL HEIGHT ' . $originalFileAttributes['height'] . '.' );
-                                            $cli->output( '---------------------------------------------------------------' );
-                                            $cli->output( '' );
-                                            $src = convertFile( $originalFileAttributes['height'] . 'p', $content, $originalFileAttributes, $root, $pathParts, $cSettings, $filePath, $convertCommandBlock, $ini, true );
+                                        }
+                                        elseif( $convertCommandBlock['Height'] < $originalFileAttributes['height'] && $convertFileOriginalBlock === false )
+                                        {
+                                            $convertFileOriginalBlock = $convertCommandBlock;
                                         }
                                         $cli->output( '' );
                                         $cli->output( '--------------------------------------------------------------' );
@@ -126,6 +126,15 @@ while( true )
                                     }
                                 }
                             }
+                            if( $convertFileOriginal === false )
+                            {
+                                $cli->output( '' );
+                                $cli->output( '--------------------------------------------------------------' );
+                                $cli->output( 'Converting additionally to ORIGINAL HEIGHT ' . $originalFileAttributes['height'] . ' because all other conversions were to small.' );
+                                $cli->output( '---------------------------------------------------------------' );
+                                $cli->output( '' );
+                                $src = convertFile( $originalFileAttributes['height'] . 'p', $content, $originalFileAttributes, $root, $pathParts, $cSettings, $filePath, $convertFileOriginalBlock, $ini, true );
+                            }
                             if( $convertFile === false )
                             {
                                 if( isset( $ini->BlockValues['Bitrate_' . $smallestBitrate] ) )
@@ -134,6 +143,9 @@ while( true )
                                     $src = convertFile( $smallestBitrate, $content, $originalFileAttributes, $root, $pathParts, $cSettings, $filePath, $convertCommandBlock, $ini );
                                 }
                             }
+                            $content['media']->xml->video['width'] = $originalFileAttributes['width'];
+                            $content['media']->xml->video['height'] = $originalFileAttributes['height'];
+                            $content['media']->xml->video['duration'] = $originalFileAttributes['duration'];
                         }
                         else
                         {
@@ -160,9 +172,7 @@ while( true )
                             }
                         }
                         $root['status'] = xrowMedia::STATUS_CONVERSION_FINISHED;
-                        $content['media']->xml->video['width'] = $originalFileAttributes['width'];
-                        $content['media']->xml->video['height'] = $originalFileAttributes['height'];
-                        $content['media']->xml->video['duration'] = $originalFileAttributes['duration'];
+                        //die(var_dump($content));
                         $content['media']->saveData();
                         // Update all versioned attribute
                         $conditions = array( 'id' => $attributeID,
@@ -279,7 +289,7 @@ function convertFile( $bitratekey, $content, $file_attributes, $root, $pathParts
 
 function execCommand( $root, $content, $pathParts, $file_suffix, $key, $filePath, $setting, $bitrate = '' )
 {
-    GLOBAL $cli;
+    $cli = eZCLI::instance();
     $newFileName = xrowMedia::newFileName( $pathParts, $file_suffix . $key );
     $src = $content['media']->registerFile( $newFileName, $root );
 
