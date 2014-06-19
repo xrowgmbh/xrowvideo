@@ -6,6 +6,9 @@ $cli->output( "Start processing media conversion" );
 
 $contentObjects = array();
 $db = eZDB::instance();
+// increase the timeouts because big movies need long time to convert
+$db->query("SET SESSION wait_timeout=300");
+$db->query("SET SESSION interactive_timeout=300");
 
 $offset = 0;
 $limit = 50;
