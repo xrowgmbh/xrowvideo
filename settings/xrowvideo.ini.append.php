@@ -3,6 +3,10 @@
 [xrowVideoSettings]
 Runtimes=html5,gears,flash,silverlight,browserplus
 
+# enable and set this time, if your DB timeouts are smaller than 10000
+#WaitingTimeOutTime=10000
+#InteractiveTimeOutTime=10000
+
 # info: http://www.fileinfo.com/filetypes/video
 VideoExtensions[]
 VideoExtensions[]=mp4

@@ -4,16 +4,36 @@
 
 $cli->output( "Start processing media conversion" );
 
+$ini = eZINI::instance( 'xrowvideo.ini' );
 $contentObjects = array();
 $db = eZDB::instance();
 // increase the timeouts because big movies need long time to convert
-$db->query("SET SESSION wait_timeout=300");
-$db->query("SET SESSION interactive_timeout=300");
+$wait_timeout = 10000;
+$interactive_timeout = $wait_timeout;
+if($ini->hasVariable( 'xrowVideoSettings', 'WaitingTimeOutTime' ))
+{
+    $wait_timeout = $ini->variable( 'xrowVideoSettings', 'WaitingTimeOutTime' );
+}
+$sqlWTO = "SHOW SESSION VARIABLES LIKE 'wait_timeout'";
+$resultWTO = $db->arrayQuery($sqlWTO);
+if($resultWTO[0]['Value'] < $wait_timeout)
+{
+    $db->query("SET SESSION wait_timeout=" . $wait_timeout);
+}
+if($ini->hasVariable( 'xrowVideoSettings', 'InteractiveTimeOutTime' ))
+{
+    $interactive_timeout = $ini->variable( 'xrowVideoSettings', 'InteractiveTimeOutTime' );
+}
+$sqlITO = "SHOW SESSION VARIABLES LIKE 'interactive_timeout'";
+$resultITO = $db->arrayQuery($sqlITO);
+if($resultITO[0]['Value'] < $interactive_timeout)
+{
+    $db->query("SET SESSION interactive_timeout=" . $interactive_timeout);
+}
 
 $offset = 0;
 $limit = 50;
 
-$ini = eZINI::instance( 'xrowvideo.ini' );
 $videoConvertArray = $ini->variable( 'xrowVideoSettings', 'ConvertVideoFiles' );
 foreach ( $videoConvertArray as $key )
 {
