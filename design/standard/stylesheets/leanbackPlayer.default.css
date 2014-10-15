@@ -513,7 +513,7 @@ body.h5_lb_iframe {
 /*********************/
 /* LBP Control Item */
 .h5_lb_player a.h5_lb_logo {
-	position: absolute; display: block;
+	position: absolute; display: none;
 	width: 121px; height: 15px; top: auto; bottom: 32px; right: 10px;
 	cursor: pointer;
 	z-index: 1002;

@@ -170,18 +170,20 @@
             </div>
         </div>
 
-        <div class="change-video video_with_html5"><p><span class="flash-version">Flash-Version</span><b class="separator-video"> | </b><span class="video-download">Video-Download</span></p></div>
-        <div class="change-video video_with_nohtml5" style="display:none;"><p><span class="video-download">Video-Download</span></p></div>
-        <div class="download-info" style="display:none;clear:left;">
-             <strong>Download Video:</strong>
-             {foreach $objects as $key => $item}
-                {def $name_parts = $item.originalfilename|explode( '.' )
-                    $last_element = $name_parts|count()|dec()
-                    $file_suffix = $name_parts.$last_element}
-                <a href={concat( 'xrowvideo/download/', $attribute.contentobject_id, '/', $attribute.id,'/', $attribute.version , '/', $item.src|rawurlencode )|ezurl()}><nobr>{$file_suffix}{if is_set( $item.width )} ({$item.width} x {$item.height}){/if}</nobr></a>{if $key|lt( $objects|count()|dec() )},{/if}
-                {undef $name_parts $last_element $file_suffix}
-             {/foreach}
-        </div>
+        {if is_set($download)|not()}
+            <div class="change-video video_with_html5"><p><span class="flash-version">Flash-Version</span><b class="separator-video"> | </b><span class="video-download">Video-Download</span></p></div>
+            <div class="change-video video_with_nohtml5" style="display:none;"><p><span class="video-download">Video-Download</span></p></div>
+            <div class="download-info" style="display:none;clear:left;">
+                 <strong>Download Video:</strong>
+                 {foreach $objects as $key => $item}
+                    {def $name_parts = $item.originalfilename|explode( '.' )
+                        $last_element = $name_parts|count()|dec()
+                        $file_suffix = $name_parts.$last_element}
+                    <a href={concat( 'xrowvideo/download/', $attribute.contentobject_id, '/', $attribute.id,'/', $attribute.version , '/', $item.src|rawurlencode )|ezurl()}><nobr>{$file_suffix}{if is_set( $item.width )} ({$item.width} x {$item.height}){/if}</nobr></a>{if $key|lt( $objects|count()|dec() )},{/if}
+                    {undef $name_parts $last_element $file_suffix}
+                 {/foreach}
+            </div>
+        {/if}
     {else}
         <!--[if gte IE 8]>
         <div class="download-info">
