@@ -186,16 +186,18 @@
         {/if}
     {else}
         <!--[if gte IE 8]>
-        <div class="download-info">
-            <strong>Download Audio:</strong>
-            {foreach $objects as $key => $item}
-                {def $name_parts = $item.originalfilename|explode( '.' )
-                    $last_element = $name_parts|count()|dec()
-                    $file_suffix = $name_parts.$last_element}
-                <a href={concat( 'xrowvideo/download/', $attribute.contentobject_id, '/', $attribute.id,'/', $attribute.version , '/', $item.src|rawurlencode )|ezurl()}><nobr>{$file_suffix}{if is_set( $item.width )} ({$item.width} x {$item.height}){/if}</nobr></a>{if $key|lt( $objects|count()|dec() )},{/if}
-                {undef $name_parts $last_element $file_suffix}
-            {/foreach}
-        </div>
+        {if is_set($download)|not()}
+            <div class="download-info">
+                <strong>Download Audio:</strong>
+                {foreach $objects as $key => $item}
+                    {def $name_parts = $item.originalfilename|explode( '.' )
+                        $last_element = $name_parts|count()|dec()
+                        $file_suffix = $name_parts.$last_element}
+                    <a href={concat( 'xrowvideo/download/', $attribute.contentobject_id, '/', $attribute.id,'/', $attribute.version , '/', $item.src|rawurlencode )|ezurl()}><nobr>{$file_suffix}{if is_set( $item.width )} ({$item.width} x {$item.height}){/if}</nobr></a>{if $key|lt( $objects|count()|dec() )},{/if}
+                    {undef $name_parts $last_element $file_suffix}
+                {/foreach}
+            </div>
+        {/if}
         <![endif]-->
     {/if}
 {else}
