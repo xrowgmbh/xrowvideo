@@ -435,7 +435,7 @@ body.h5_lb_iframe {
 /* Info Control Item */
 .h5_lb_controls div.h5_lb_info_control {display: block; width: 40px; cursor: pointer;}
 .h5_lb_controls div.h5_lb_info_control div {
-	text-align: center !important; height: 30px; margin: 9px 0 0;
+	text-align: center !important; height: 30px; margin: 9px 0 0 -2px;
 	/* Background - Gradients - "LEANBACK PLAYER" LOGO */
 	background: transparent url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAB4AAAAOCAYAAAA45qw5AAAABGdBTUEAAK/INwWK6QAAABl0RVh0U29mdHdhcmUAQWRvYmUgSW1hZ2VSZWFkeXHJZTwAAAF5SURBVHjaYvz//z8DDNy4cQPBIQCePHnCKCMjQ7R6DQ0NRmQ+QAAxIXNAjiAWu7q6/idFPSMj4xkgAbYHyGYACCAWZIt//frFQAogUb0xMgcggFAs/vz5M0kWk6oeGQAEEIrF379/J0kzqeqRAUAAofr4E4k+JlE9A1JCBgggsMV79uwBiTB++vyJJHNIVQ+yx8XFhRGU2AACiGXFypVAS/8zREZE/u/p6SHJoLdv35Ko/g3DSqB94eHhjAABxPL86VOG/9AcxgRM50XFxUTnTUZGJsbi4iKi1T99+gyWnf4DBBBjVVUVQ1tb2/9p06YxqKqqMtAQnN2/f78JyC4QByCAGGEl18oVK8EskOdBIcAI4jEy4kgkUIUIBpo4ptB/SHSeBdpnAipAAAIInqqfPQMGOUwX43+Y7VgsZUSzAcpmBOlmhKdcmHaI6H+G/2iFCEAAwYs0UJCD1ANpMIaaSBHGZhYshAECiAG5kkALof9UilusZgEEGAAbLvjHkcOITgAAAABJRU5ErkJggg==') no-repeat;
 }
