@@ -3,4 +3,6 @@
 [ExtensionSettings]
 DesignExtensions[]=xrowvideo
 
+[StylesheetSettings]
+FrontendCSSFileList[]=leanbackPlayer.modified.css
 */ ?>

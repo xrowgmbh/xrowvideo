@@ -41,11 +41,19 @@ body.h5_lb_iframe {
 .change-video p{float:left;}
 
 .h5_lb_player {cursor: pointer; direction: ltr;}
-.h5_lb_player .h5_lb_video {background: #000; cursor: pointer; z-index: 1000; outline: 0;}
+.h5_lb_player .h5_lb_video {background: #000; cursor: pointer; z-index: 1000; outline: 0; width:100% !important;float:left;}
 .h5_lb_player .h5_lb_audio {cursor: pointer; outline: 0;}
 .h5_lb_player audio {display: none !important; height: 0 !important;}
 
-.h5_lb_smallscreen {position: relative; margin: auto; text-align: center;}
+.h5_lb_smallscreen {
+    position: relative; 
+    margin: auto; 
+    text-align: center;
+    width:100% !important;
+    height:auto !important;
+   /* min-height:240px !important;*/
+    float:left;
+}
 .h5_lb_fullscreen {position: fixed !important; top: 0; left: 0; margin: auto; text-align: center; border: 0; background: #000; z-index: 9999;}
 .h5_lb_fullscreen .h5_lb_video {border: 0;}
 .h5_lb_unfocused {/*opacity: 0.7;*/opacity: 1.0;}
@@ -86,14 +94,14 @@ body.h5_lb_iframe {
 .h5_lb_player img.logo {position: absolute; height: auto; width: auto; margin: 0; top: 12px; left: 12px; border: 1px solid transparent; display: block; z-index: 1000;}
 /******************/
 /* Poster, Object */
-.h5_lb_player img.poster {position: absolute; margin: 0; top: 0; left: auto; right: auto; display: block; z-index: 900;}
+.h5_lb_player img.poster {position: absolute; margin: 0; top: 0; left: auto; right: auto; display: block; z-index: 900; height:auto !important; width:100% !important;}
 .h5_lb_fullscreen img.poster {border: 0;}
 /***************/
 /* Control Bar */
 .h5_lb_controls {
-    position: relative; top: auto; bottom: 3px; height: 29px; cursor: default; z-index: 901;
+    top: auto; bottom: 3px; min-height: 32px; width:100%; cursor: default; z-index: 901;
     /* Border */
-    border-top: 1px solid #000;
+    /*border-top: 1px solid #000;*/
     /* Disable selection */
     -moz-user-select: -moz-none;
     -khtml-user-select: none;
@@ -101,9 +109,12 @@ body.h5_lb_iframe {
     -o-user-select: none;
     user-select: none;
     /* Background */
-    background: #646464;
+    /*background: #646464;*/
     /* Background - URL */
-    background: transparent url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAAeCAIAAABi9+OQAAAABGdBTUEAAK/INwWK6QAAABl0RVh0U29mdHdhcmUAQWRvYmUgSW1hZ2VSZWFkeXHJZTwAAACbSURBVHjaYvDwcAcIIGZOLk6AAGL68eMHQAAxAQFAADH9//8fIICYGBgYAAIIiP8DBBDTv3//AAIIxAcIIBAGCCAQBgggEAYIIBAGCCAQBgggEAYIIJA8QAAx/Wf4DxBATP///gcIIBAfIICAbAaAAAKJAQQQSD9AAIH4AAEEwgABBGIDBBCIBgggEAYIIBAGCCAQBgggEAYIMAB1v0PS0+tkpgAAAABJRU5ErkJggg==') repeat-x;
+    /*background: transparent url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAAeCAIAAABi9+OQAAAABGdBTUEAAK/INwWK6QAAABl0RVh0U29mdHdhcmUAQWRvYmUgSW1hZ2VSZWFkeXHJZTwAAACbSURBVHjaYvDwcAcIIGZOLk6AAGL68eMHQAAxAQFAADH9//8fIICYGBgYAAIIiP8DBBDTv3//AAIIxAcIIBAGCCAQBgggEAYIIBAGCCAQBgggEAYIIJA8QAAx/Wf4DxBATP///gcIIBAfIICAbAaAAAKJAQQQSD9AAIH4AAEEwgABBGIDBBCIBgggEAYIIBAGCCAQBgggEAYIMAB1v0PS0+tkpgAAAABJRU5ErkJggg==') repeat-x;*/
+    display: inline-block !important;
+    float:left;
+    background: #20211e;
 }
 .h5_lb_controls_below {
     right: -2px; bottom: -31px; left: 0;
@@ -112,7 +123,7 @@ body.h5_lb_iframe {
 .h5_lb_fullscreen .h5_lb_controls {
     position: absolute; top: auto; bottom: 0; left: 0; margin: 0; padding: 0 !important;
 }
-.h5_lb_player:hover .h5_lb_controls {display: block;}
+.h5_lb_player:hover .h5_lb_controls {display: inline-block !important;}
 .h5_lb_controls_audio {
     position: relative !important; margin: auto !important; bottom: auto !important;
     /* Border */
@@ -343,7 +354,7 @@ body.h5_lb_iframe {
 /* Sources Control: Inner Items */
 .h5_lb_controls div.h5_lb_sources_control div {text-align: center !important; padding: 9px 0 0; font: 10px/1.231 "bitstream vera sans", "lucida grande", verdana !important; text-shadow: 1px 1px 1px rgba(0,0,0,1); color: #fff;}
 .h5_lb_controls div.h5_lb_sources_control div.sources_nav {
-    position: absolute; width: 62px; margin: 0 0 3px -9px; padding: 0; display: none;
+    position: relative; width: 62px; margin: 0 0 3px -9px; padding: 0; display: none; z-index:1002;
     border: 1px solid #000; border-bottom: 0;
     /* Background Fallback for web browsers doesn't support gradient */
     background: #0e0f0d;
@@ -544,3 +555,11 @@ body.h5_lb_iframe {
 /****************************************/
 /* CSS Loaded Test - do not change this */
 .h5_lb_css_loaded_test {display: none;}
+
+/* for Smartphone Portrait */
+@media only screen and (max-width : 700px) 
+{
+    .leanback-player-video .h5_lb_progress_control{
+        display:none !important;
+    }
+}

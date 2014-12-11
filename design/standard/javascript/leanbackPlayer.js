@@ -400,7 +400,7 @@ LBP.prototype.initializeControls = function(b) {
 			LBP.removeCssClass(vid+"_progress_control", "elem_visibility_hidden");
 		}
 		
-		var bsXY = (!!this.vars.bsXY && this.vars.isCorsIframe)?this.vars.bsXY:LBP.getBrowserSizeXY(this.vars.isIframe), w = ((this.vars.fullscreen) ? bsXY.width : LBP.$(vid).offsetWidth), b = parseInt(LBP.$(vid).offsetWidth - LBP.getElemStyle(vid, "width"), 10);
+		var bsXY = (!!this.vars.bsXY && this.vars.isCorsIframe)?this.vars.bsXY:LBP.getBrowserSizeXY(this.vars.isIframe), w = ((this.vars.fullscreen) ? bsXY.width : LBP.$(vid).offsetWidth), b = parseInt(LBP.$(vid).offsetWidth - LBP.$(vid).offsetWidth, 10);
 
 		/* do: show controls to calculate */
 		LBP.removeCssClass(vid+"_controls", "elem_visibility_hidden");
@@ -2078,8 +2078,8 @@ LBP.prototype.sizeScreen = function() {
 	if(this.vars.fullscreen) {var bsXY = (!!this.vars.bsXY && this.vars.isCorsIframe)?this.vars.bsXY:LBP.getBrowserSizeXY(this.vars.isIframe); ps = {h: bsXY.height, w: bsXY.width}; s = LBP.resizeToBrowser(s.h, s.w, bsXY); mt = parseInt((bsXY.height-s.h)/2, 10); ml = "-"+parseInt(s.w/2, 10);}
 
 	/* do: set CSS style of video and video parent position and dimenstions */
-	LBP.setCssStyle(this.options.vid, ["height", "width", "marginTop"], [s.h+"px", s.w+"px", mt+"px"]);
-	LBP.setCssStyle(this.options.pid, ["height", "width"], [ps.h+"px", ps.w+"px"]);
+	LBP.setCssStyle(this.options.vid, ["height", "width", "marginTop"], ["auto", "auto", mt+"px"]);
+	LBP.setCssStyle(this.options.pid, ["height", "width"], [ps.h+"px", LBP.$(this.options.pid).offsetWidth+"px"]);
 
 	/* do: set subtitle-position to videos viewport */
 	if(!this.options.permitSubtitlesWindowBoxed && this.vars.fullscreen) {
