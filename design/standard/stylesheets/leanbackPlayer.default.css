@@ -433,7 +433,7 @@ body.h5_lb_iframe {
 }
 /*********************/
 /* Info Control Item */
-.h5_lb_controls div.h5_lb_info_control {display: block; width: 40px; cursor: pointer; margin-left:-1px;}
+.h5_lb_controls div.h5_lb_info_control {display: block; width: 40px; cursor: pointer; margin-left:-3px;}
 .h5_lb_controls div.h5_lb_info_control div {
 	text-align: center !important; height: 30px; margin: 9px 0 0;
 	/* Background - Gradients - "LEANBACK PLAYER" LOGO */
