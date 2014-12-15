@@ -564,3 +564,11 @@ body.h5_lb_iframe {
         display:none !important;
     }
 }
+
+.xrow_responsive_player
+{
+    width:100% !important;
+    height:100% !important;
+    position:absolute !important;
+    overflow:hidden !important;
+}

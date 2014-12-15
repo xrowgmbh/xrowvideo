@@ -995,7 +995,7 @@ LBP.prototype.addInfoControl = function(vid, pid) {
 	var plant=document.getElementById(vid);
 	var content_id=plant.getAttribute('data-objectid');
 	var content_default = this.getTranslation("Info_content_default_player", [this.options.infoUrl, this.version])+" &nbsp;&nbsp;&copy; Copyright 2010-2013, All Rights Reserved.";
-	var content_embed = "<iframe scrolling=\"no\" seamless=\"seamless\" width=\"400\" height=\"240\" src=" + "\"http:\/\/" + document.domain + "\/xrowvideo\/embed\/"+ content_id +"\""+ "&nbsp;frameborder=\"0\" allowfullscreen><\/iframe>";
+	var content_embed = "<iframe scrolling=\"no\" width=\"400\" height=\"240\" src=" + "\"http:\/\/" + document.domain + "\/xrowvideo\/embed\/"+ content_id +"\""+ "&nbsp;frameborder=\"0\" allowfullscreen><\/iframe>";
 
 	/* do: add extensions information if available */
 	if(ext_length > 0) {content_default += this.getTranslation("Info_content_default_exts")+exts_content;}
@@ -2079,7 +2079,7 @@ LBP.prototype.sizeScreen = function() {
 
 	/* do: set CSS style of video and video parent position and dimenstions */
 	LBP.setCssStyle(this.options.vid, ["height", "width", "marginTop"], ["auto", "auto", mt+"px"]);
-	LBP.setCssStyle(this.options.pid, ["height", "width"], [ps.h+"px", ps.w+"px"]);
+	LBP.setCssStyle(this.options.pid, ["height", "width"], [ps.h+"px", LBP.$(this.options.pid).offsetWidth+"px"]);
 
 	/* do: set subtitle-position to videos viewport */
 	if(!this.options.permitSubtitlesWindowBoxed && this.vars.fullscreen) {

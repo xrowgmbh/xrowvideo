@@ -35,7 +35,7 @@
 		</style>
 		{/literal}
 	</head>
-	<body>
+	<body class="xrow_responsive_player">
 		{$module_result.content}
 		<!--DEBUG_REPORT-->
 	</body>
