@@ -126,7 +126,7 @@ body.h5_lb_iframe {
 }
 .h5_lb_player:hover .h5_lb_controls {display: inline-block !important;}
 .h5_lb_controls_audio {
-    position: relative !important; margin: auto !important; bottom: auto !important;
+    position: absolute !important; width:100% !important; margin: auto !important; bottom: auto !important;
     /* Border */
     border: 1px solid #000 !important;
 }
