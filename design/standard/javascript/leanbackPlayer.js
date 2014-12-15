@@ -2079,7 +2079,7 @@ LBP.prototype.sizeScreen = function() {
 
 	/* do: set CSS style of video and video parent position and dimenstions */
 	LBP.setCssStyle(this.options.vid, ["height", "width", "marginTop"], ["auto", "auto", mt+"px"]);
-	LBP.setCssStyle(this.options.pid, ["height", "width"], [ps.h+"px", LBP.$(this.options.pid).offsetWidth+"px"]);
+	LBP.setCssStyle(this.options.pid, ["height", "width"], [ps.h+"px", ps.w+"px"]);
 
 	/* do: set subtitle-position to videos viewport */
 	if(!this.options.permitSubtitlesWindowBoxed && this.vars.fullscreen) {
