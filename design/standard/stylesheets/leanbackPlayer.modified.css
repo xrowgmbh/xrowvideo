@@ -100,7 +100,7 @@ body.h5_lb_iframe {
 /***************/
 /* Control Bar */
 .h5_lb_controls {
-    top: auto; bottom: 3px; min-height: 32px; width:100%; cursor: default; z-index: 901;
+    top: auto; bottom: 0px; min-height: 32px; width:100%; cursor: default; z-index: 901;
     /* Border */
     /*border-top: 1px solid #000;*/
     /* Disable selection */
@@ -116,6 +116,7 @@ body.h5_lb_iframe {
     display: inline-block !important;
     float:left;
     background: #20211e;
+    position:relative;
 }
 .h5_lb_controls_below {
     right: -2px; bottom: -31px; left: 0;
