@@ -33,10 +33,10 @@ $(document).ready(function(){
     
     var bro=$.browser;
     var binfo="";
-    if(bro.msie) {binfo="Microsoft Internet Explorer";}
-    if(bro.mozilla) {binfo="Mozilla Firefox";}
-    if(bro.safari) {binfo="Apple Safari";}
-    if(bro.opera) {binfo="Opera";}
+    if(navigator.appVersion.indexOf("MSIE") !== -1) {binfo="Microsoft Internet Explorer";}
+    //if(bro.mozilla) {binfo="Mozilla Firefox";}
+    //if(bro.safari) {binfo="Apple Safari";}
+    //if(bro.opera) {binfo="Opera";}
     if(binfo == "Microsoft Internet Explorer")
     {
         $('.extra-flash-video').attr("classid","clsid:D27CDB6E-AE6D-11cf-96B8-444553540000");

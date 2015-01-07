@@ -30,7 +30,9 @@ body.h5_lb_iframe {
 }
 /*******************/
 /* LeanBack Player */
-.leanback-player-video {background-color: #000;}
+.leanback-player-video {
+    background-color: rgba(255,255,255,0);
+}
 .leanback-player-video, .leanback-player-audio {
     /* fix: prevent button to be focused on Android */
     -webkit-tap-highlight-color: rgba(0,0,0,0);
@@ -41,7 +43,14 @@ body.h5_lb_iframe {
 .change-video p{float:left;}
 
 .h5_lb_player {cursor: pointer; direction: ltr;}
-.h5_lb_player .h5_lb_video {background: #000; cursor: pointer; z-index: 1000; outline: 0; width:100% !important;float:left;}
+.h5_lb_player .h5_lb_video {
+    background: rgba(255,255,255,0);
+    cursor: pointer; 
+    z-index: 1000; 
+    outline: 0; 
+    width:100% !important;
+    float:left;
+}
 .h5_lb_player .h5_lb_audio {cursor: pointer; outline: 0;}
 .h5_lb_player audio {display: none !important; height: 0 !important;}
 
@@ -95,7 +104,7 @@ body.h5_lb_iframe {
 .h5_lb_player img.logo {position: absolute; height: auto; width: auto; margin: 0; top: 12px; left: 12px; border: 1px solid transparent; display: block; z-index: 1000;}
 /******************/
 /* Poster, Object */
-.h5_lb_player img.poster {position: absolute; margin: 0; top: 0; left: auto; right: auto; display: block; z-index: 900; height:auto !important; width:100% !important;}
+.h5_lb_player img.poster {position: absolute; margin: 0; top: 0; left: auto; right: auto; display: block; z-index: 900; height:auto !important; width:100% !important;background:rgb(100%,100%,100%);}
 .h5_lb_fullscreen img.poster {border: 0;}
 /***************/
 /* Control Bar */
