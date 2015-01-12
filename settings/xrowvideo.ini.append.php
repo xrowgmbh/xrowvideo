@@ -84,7 +84,7 @@ Options[]
 Options[]=-ar 44100
 
 [mp4]
-Program=ffmpeg -y -profile:basline -i <original_file> <bitrate> <options> -f mp4 <converted_file>
+Program=ffmpeg -y -profile:v basline -i <original_file> <bitrate> <options> -f mp4 <converted_file>
 MimeType=video/mp4
 Options[]
 Options[]=-acodec libvo_aacenc -threads 0
