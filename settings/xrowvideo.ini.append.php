@@ -44,7 +44,6 @@ ConvertCommandReplace[FramesPerSecond]=-r
 Bitrates[]
 Bitrates[]=1080p
 Bitrates[]=720p
-#Bitrates[]=576p
 Bitrates[]=360p
 Bitrates[]=240p
 
