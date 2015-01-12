@@ -46,8 +46,7 @@ Bitrates[]=1080p
 Bitrates[]=720p
 #Bitrates[]=576p
 Bitrates[]=360p
-Bitrates[]=234p
-Bitrates[]=216p
+Bitrates[]=240p
 
 [Bitrate_1080p]
 Height=1080
@@ -64,13 +63,6 @@ VideoBitrate=4M
 AudioBitrate=128K
 FramesPerSecond=25
 
-[Bitrate_576p]
-Height=576
-Width=1024
-VideoBitrate=2.5M
-AudioBitrate=128K
-FramesPerSecond=25
-
 [Bitrate_360p]
 Height=360
 Width=640
@@ -78,17 +70,10 @@ VideoBitrate=1.4M
 AudioBitrate=128K
 FramesPerSecond=25
 
-[Bitrate_234p]
+[Bitrate_240p]
 Height=234
-Width=416
+Width=427
 VideoBitrate=560K
-AudioBitrate=80K
-FramesPerSecond=25
-
-[Bitrate_216p]
-Height=216
-Width=384
-VideoBitrate=360K
 AudioBitrate=80K
 FramesPerSecond=25
 
@@ -100,7 +85,7 @@ Options[]
 Options[]=-ar 44100
 
 [mp4]
-Program=ffmpeg -y -i <original_file> <bitrate> <options> -f mp4 <converted_file>
+Program=ffmpeg -y -profile:basline -i <original_file> <bitrate> <options> -f mp4 <converted_file>
 MimeType=video/mp4
 Options[]
 Options[]=-acodec libvo_aacenc -threads 0
