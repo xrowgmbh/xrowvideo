@@ -32,7 +32,7 @@ ConvertAudioFiles[]=oga
 
 MaxVideoWidth=1920
 
-DefaultVideoForPlayer=360p
+DefaultVideoForPlayer=720p
 
 #KeepProportion=enabled
 
@@ -71,7 +71,7 @@ AudioBitrate=128K
 FramesPerSecond=25
 
 [Bitrate_240p]
-Height=234
+Height=240
 Width=427
 VideoBitrate=560K
 AudioBitrate=80K
