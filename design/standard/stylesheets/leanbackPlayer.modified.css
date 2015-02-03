@@ -32,10 +32,16 @@ body.h5_lb_iframe {
 /* LeanBack Player */
 .leanback-player-video {
     background-color: rgba(255,255,255,0);
+    width:100% !important;
 }
 .leanback-player-video, .leanback-player-audio {
     /* fix: prevent button to be focused on Android */
     -webkit-tap-highlight-color: rgba(0,0,0,0);
+}
+.leanback-player-video video{
+    width:100% !important;
+    height:auto !important;
+    float:left;
 }
 /*Feature #5636*/
 .change-video{float:left;}
