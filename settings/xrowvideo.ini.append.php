@@ -84,7 +84,8 @@ Options[]
 Options[]=-ar 44100
 
 [mp4]
-Program=ffmpeg -y -movflags faststart -profile:v baseline -i <original_file> <bitrate> <options> -f mp4 <converted_file>
+Program=ffmpeg -y faststart -profile:v baseline -i <original_file> <bitrate> <options> -f mp4 <converted_file>
+#  -movflags for later
 MimeType=video/mp4
 Options[]
 Options[]=-acodec libvo_aacenc -threads 0
