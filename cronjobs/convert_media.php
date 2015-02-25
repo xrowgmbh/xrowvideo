@@ -68,7 +68,7 @@ while( true )
                 // only convert published media files
                 if ( $obj instanceof eZContentObject && $obj->Status == eZContentObject::STATUS_PUBLISHED )
                 {
-                    $cli->output( "Converting media of '" . $obj->attribute( 'name' ) . "'" );
+                    $cli->output( "Converting media of '" . $obj->attribute( 'name' ) . "' with ObjectID #" . $obj->attribute('id') );
                     $content = $attr->content();
                     $binary = $content['binary'];
                     if ( $binary )
