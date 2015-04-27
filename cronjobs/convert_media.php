@@ -8,7 +8,7 @@ $ini = eZINI::instance( 'xrowvideo.ini' );
 $contentObjects = array();
 $db = eZDB::instance();
 // increase the timeouts because big movies need long time to convert
-$wait_timeout = 10000;
+$wait_timeout = 100000;
 $interactive_timeout = $wait_timeout;
 if($ini->hasVariable( 'xrowVideoSettings', 'WaitingTimeOutTime' ))
 {
