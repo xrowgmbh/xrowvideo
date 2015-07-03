@@ -9,7 +9,7 @@ LBP.options = {
 };
 if( $('input.hiddenleanbacktrackingGAID').length )
 {
-    var googleanalyticsid=$('input.hiddenleanbacktrackingGAID').val();
+    var googleanalyticsid=$('input#hiddenleanbacktrackingGAID').val();
   //do: define Google Analytics Tracker extension option(s)
     LBP.gaTracker.options = {
             addJSCode: false, // true if extension should add
