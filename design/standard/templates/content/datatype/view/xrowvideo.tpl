@@ -91,7 +91,7 @@
     {*ezscript_require( 'flash_detect_min.js' )*}
     {if ezini( 'xrowVideoSettings', 'EnableTrackingwithGA', 'xrowvideo.ini' )|eq('enabled')}
         {ezscript_require( 'xrowvideo_withtracking.js' )}
-        <input type="hidden" name="hiddenleanbacktrackingGAID" id="hiddenleanbacktrackingGAID" value="{ ezini( 'xrowVideoSettings', 'TrackingGAID', 'xrowvideo.ini' )}" />
+        <input type="hidden" name="hiddenleanbacktrackingGAID" id="hiddenleanbacktrackingGAID" value="{ezini( 'xrowVideoSettings', 'TrackingGAID', 'xrowvideo.ini' )}" />
     {else}
         {ezscript_require( 'xrowvideo.js' )}
     {/if}
