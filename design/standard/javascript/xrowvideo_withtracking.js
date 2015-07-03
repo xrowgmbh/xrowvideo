@@ -7,12 +7,13 @@ LBP.options = {
     hideControls: false,
     triggerHTML5Events : [ "play", "pause" ],
 };
+$(document).ready(function(){
 if( $('input#hiddenleanbacktrackingGAID').length )
 {
-    var googleanalyticsid=$('input#hiddenleanbacktrackingGAID').val();
+var googleanalyticsid=$('input#hiddenleanbacktrackingGAID').val();
   //do: define Google Analytics Tracker extension option(s)
     LBP.gaTracker.options = {
-            addJSCode: false, // true if extension should add
+            addJSCode: true, // true if extension should add
                                 // Google Analytics async Javascript source code
             //profileID: "UA-1234567-8", // profile ID (web property ID, website ID)
             profileID: googleanalyticsid, // profile ID (web property ID, website ID)
@@ -24,9 +25,8 @@ if( $('input#hiddenleanbacktrackingGAID').length )
         // do: define events to be tracked
         LBP.gaTracker.trackEvents =
             ["VolumeChange", "RateChange", "Seeking", "Seeked", "Ended", "Play", "Pause"];
-
-
 }
+});
 
 /*Feature #5636*/
 $(document).ready(function(){
