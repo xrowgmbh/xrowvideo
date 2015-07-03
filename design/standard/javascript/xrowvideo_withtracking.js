@@ -7,7 +7,7 @@ LBP.options = {
     hideControls: false,
     triggerHTML5Events : [ "play", "pause" ],
 };
-if( $('input.hiddenleanbacktrackingGAID').length )
+if( $('input#hiddenleanbacktrackingGAID').length )
 {
     var googleanalyticsid=$('input#hiddenleanbacktrackingGAID').val();
   //do: define Google Analytics Tracker extension option(s)
