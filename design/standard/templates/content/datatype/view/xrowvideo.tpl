@@ -85,8 +85,16 @@
     {ezscript_require( 'leanbackPlayer.fr.js' )}
     {ezscript_require( 'leanbackPlayer.nl.js' )}
     {ezscript_require( 'leanbackPlayer.ru.js' )}
+    {if ezini( 'xrowVideoSettings', 'EnableTrackingwithGA', 'xrowvideo.ini' )|eq('enabled')}
+        {ezscript_require( 'leanbackPlayer.ext.googleAnalyticsTracking.pack.js' )}
+    {/if}
     {*ezscript_require( 'flash_detect_min.js' )*}
-    {ezscript_require( 'xrowvideo.js' )}
+    {if ezini( 'xrowVideoSettings', 'EnableTrackingwithGA', 'xrowvideo.ini' )|eq('enabled')}
+        {ezscript_require( 'xrowvideo_withtracking.js' )}
+        <input type="hidden" name="hiddenleanbacktrackingGAID" id="hiddenleanbacktrackingGAID" value="{ ezini( 'xrowVideoSettings', 'TrackingGAID', 'xrowvideo.ini' )}" />
+    {else}
+        {ezscript_require( 'xrowvideo.js' )}
+    {/if}
     {/run-once}
 
     <div class="leanback-player-{$media_tag}"{if $media_tag|eq( 'audio' )}{$audio_width}{/if} {if $media_tag|eq( 'video' )}style="width:{$width}px;height:{$height}px;"{/if}>

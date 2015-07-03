@@ -1,0 +1,21 @@
+/**
+ * Version: 0.1.0 - LeanBack Player Google Analytics Tracking Extension
+ * Date: 2011-12-28
+ *
+ * This Software is part of LeanBack Player [HTML5 Media Player UI] by Ronny Mennerich
+ * Copyright (c) 2010-2011 Ronny Mennerich <contact@leanbackplayer.com>
+ *
+ * LeanBack Player Extension, in its open source version, is free software: 
+ * you can redistribute it and/or modify it under the terms of the
+ * GNU General Public License as published by the Free Software Foundation,
+ * either version 3 of the License, or (at your option) any later version.
+ * 
+ * LeanBack Player Extension is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with LeanBack Player Extension. If not, see <http://www.leanbackplayer.com/license_gpl3.html/>.
+ */
+eval(function(p,a,c,k,e,r){e=function(c){return(c<a?'':e(parseInt(c/a)))+((c=c%a)>35?String.fromCharCode(c+29):c.toString(36))};if(!''.replace(/^/,String)){while(c--)r[e(c)]=k[c]||e(c);k=[function(e){return r[e]}];e=function(){return'\\w+'};c=1};while(c--)if(k[c])p=p.replace(new RegExp('\\b'+e(c)+'\\b','g'),k[c]);return p}('3.2={6:{A:!0},M:"3-N",O:"1e,1f,1g,1h,1i,1j,1k".1l(",")};3.w.1m["r.2"]=!0;3.w.1n["r.2"]="x y N";3.w.1o["r.2"]="B C";3.w.1p["r.2"]="P://1q.Q";3.w.1r["r.2"]="0.1.0";3.1s.z("R");3.S.R=i(){j("9"===7 8.4.2)8.4.2={};j("9"===7 3.2.D)3.2.D=1t;3.T("1u",i(){8.4.2.m=8.5.l});3.T("1v",i(){8.4.2.m=8.5.l});j("9"!==7 3.2.6&&"9"!==7 3.2.6.U&&3.2.6.U&&"9"!==7 3.2.6.s){k a=a||[];a.z(["1w",3.2.6.s]);3.2.6.A||a.z(["V","1x"]);a.z(["1y"]);(i(){k f=G.1z("W");f.1A="1B/1C";f.1D=!0;f.t=("X:"===G.1E.1F?"X://1G":"P://1H")+".1I-1J.Q/1K.1L";k a=G.1M("W")[0];a.1N.1O(f,a)})()}k h=i(a,g){a++;Y.1P(3.2.D);"9"===7 3.2.6.s||1Q<=a?"9"===7 3.2.6.s?3.H("x y I J u B C Z 11 u 12. 1R 1S K 1T 1U 1V \'3.2.6.s\' K 1W r K 1X.","13"):3.H("x y 14 Z 11 u 12. 1Y 1Z x y I J u B C 21.","13"):"9"===7 L||"14"!==7 L?3.2.D=Y.22(i(){h(a,g)},20):g.15()};h(0,8)};3.S.15=i(){k a,h=3.2.M,f=3.2.O;j("9"===7 8.4.2.n)8.4.2.n=!1;j("9"===7 8.4.2.E)8.4.2.E=!1;j("9"===7 8.4.2.m)8.4.2.m=0;k g=i(a,b){k c=a.p(),e="#"+a,d=!0;23(c){q"16":e="#"+a+"="+o(b.5.l,10);v;q"17":e="#"+a+"="+o(b.5.l,10);v;q"n":b.4.2.m=b.5.l;d=o(b.5.l,10);e="#"+a+"="+d;v;q"18":d=o(b.4.2.m,10);e="#"+a+"="+d;v;q"19":b.4.2.m=b.5.l;d=o(b.5.l,10);e="#"+a+"="+d;v;q"24":d=o(1a*b.5.25,10);e="#"+a+"="+d;v;q"26":d=o(1a*b.5.27,10),e="#"+a+"="+d}28{F:d,1b:e}};u(a=0;a<f.1c;a++)(i(a,b,c){3.29(c.5,b.p(),i(){k e=g(b,c);j("9"!==7 1d){j("16"===b.p())c.4.2.E=!0,c.4.2.n=!1;j("n"===b.p())c.4.2.n=!0;j("17"===b.p()&&c.4.2.n)c.4.2.n=!1;2a j(c.4.2.E&&!("18"===b.p()&&c.4.2.m>=c.5.2b)&&!("19"===b.p()&&0.2c>=c.5.l)){3.2.6.2d&&3.H("x y I J u B C 2e 2f \'"+b+"\'"+("2g"===7 e.F?"":" (F: \'"+e.F+"\')")+" 2h 2i 2j 2k t \'"+c.5.t+"\'","2l");k d=c.5.t.2m(o(c.5.t.2n("/")+1,10),c.5.t.1c);1d.z(i(){k c=L.2o(3.2.6.s);3.2.6.A||c.V(3.2.6.A);c.2p(a,b,""+d+e.1b)})}}})})(h,f[a],8)};',62,150,'||gaTracker|LBP|vars|html5Obj|options|typeof|this|undefined|||||||||function|if|var|currentTime|storeCurrentTime|ended|parseInt|toLowerCase|case|extension|profileID|src|for|break|Exts|Google|Analytics|push|setDomainName|LeanBack|Player|bufferproc|played|value|document|log|Tracker|Extension|to|_gat|trackCategory|Tracking|trackEvents|http|com|initializeGATracker|prototype|preExtend|addJSCode|_setDomainName|script|https|window|not||ready|tracking|warn|object|addGATrackerEvents|play|pause|seeking|seeked|100|urlv|length|_gaq|VolumeChange|RateChange|Seeking|Seeked|Ended|Play|Pause|split|Info|Name|User|URL|leanbackplayer|Version|initialize|null|onSeeking|seekTo|_setAccount|none|_trackPageview|createElement|type|text|javascript|async|location|protocol|ssl|www|google|analytics|ga|js|getElementsByTagName|parentNode|insertBefore|clearTimeout|200|You|have|define|at|least|get|work|Setting|up||failed|setTimeout|switch|ratechange|playbackRate|volumechange|volume|return|addEvent|else|duration|01|debug|tracked|event|boolean|on|HTML5|media|element|info|substr|lastIndexOf|_getTracker|_trackEvent'.split('|'),0,{}));
