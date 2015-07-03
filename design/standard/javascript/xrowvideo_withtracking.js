@@ -14,7 +14,7 @@ if( $('input.hiddenleanbacktrackingGAID').length )
     LBP.gaTracker.options = {
             addJSCode: false, // true if extension should add
                                 // Google Analytics async Javascript source code
-            //profileID: "UA-64749560-1", // profile ID (web property ID, website ID)
+            //profileID: "UA-1234567-8", // profile ID (web property ID, website ID)
             profileID: googleanalyticsid, // profile ID (web property ID, website ID)
                                             // events should be tracked for
             debug: true, // true if tracked events should be written to console
