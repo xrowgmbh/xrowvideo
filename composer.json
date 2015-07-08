@@ -12,7 +12,7 @@
     "minimum-stability": "dev",
     "require": {
         "ezsystems/ezpublish-legacy-installer": "*",
-        "php-ffmpeg/php-ffmpeg": "~0.5"
+        "php-ffmpeg/php-ffmpeg": "~0.6"
     },
     "extra": {
         "ezpublish-legacy-extension-name": "xrowvideo"
