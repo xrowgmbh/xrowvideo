@@ -92,7 +92,7 @@ class xrowVideoType extends eZBinaryFileType
         $result['media'] = $mObj;
         $result['pending'] = $mObj->hasPendingAction();
         # ffmpeg check
-        if ( !class_exists( 'ffmpeg_movie' ) )
+        if ( !is_executable ( '/usr/bin/ffmpeg' ) )
         {
             $result['error'] = self::ERROR_NO_FFMPEG_INSTALLED;
         }

@@ -138,7 +138,14 @@ class xrowMedia
         $obj = new eZPendingActions( $row );
         $obj->store();
     }
-
+    private function isAudio( FFMpeg\FFProbe\DataMapping\StreamCollection $collection )
+    {
+        if ( count( $collection->videos() ) === 0 )
+        {
+            return true;
+        }
+        return false;
+    }
     /**
      * Update the information of a uploaded media file
      * The local copy needs to be deleted outside
@@ -174,22 +181,8 @@ class xrowMedia
                 $filePath = $docRoot . DIRECTORY_SEPARATOR . $filePath;
                 $filePath = str_replace( array( "/", "\\" ), array( DIRECTORY_SEPARATOR, DIRECTORY_SEPARATOR ), $filePath );
             }
-            $mov = @new ffmpeg_movie( $filePath, false );
-            if ( $mov instanceof ffmpeg_movie )
-            {
-                if ( $mov->hasVideo() )
-                {
-                    $this->addVideoInfo( $mov, $binary->attribute( 'mime_type' ), $filePath );
-                }
-                elseif ( $mov->hasAudio() )
-                {
-                    $this->addAudioInfo( $mov, $binary->attribute( 'mime_type' ), $filePath );
-                }
-            }
-            else
-            {
-                eZDebug::writeError( $filePath, 'Dont found the video, check path.' );
-            }
+            
+            $this->addInfo( $filePath, $binary->attribute( 'mime_type' ) );
             $file->deleteLocal();
         }
     }
@@ -200,32 +193,39 @@ class xrowMedia
      * @param string $mimeType
      * @param string $filePath
      */
-    public function addVideoInfo( ffmpeg_movie $mov, $mimeType, $filePath )
+    public function addInfo( $filePath, $mimeType )
     {
-        if ( $mov->hasVideo() )
+        $probe = FFMpeg\FFProbe::create();
+        $collection = $probe->streams( $filePath );
+        
+        if ( !self::isAudio( $collection ) )
         {
             eZDebug::writeDebug( 'File is a video', __METHOD__ );
+            $stream = $collection->videos()->first();
+            $dimensions = $stream->getDimensions();
+            $format = $probe->format( $filePath );
+
             if ( !isset( $this->xml->video ) )
             {
                 $video = $this->xml->addChild( 'video' );
             }
-            $height = $mov->getFrameHeight();
+            $height = $dimensions->getHeight();
             if ( $height > 0 )
             {
                 $this->xml->video['height'] = $height;
             }
-            $width = $mov->getFrameWidth();
+            $width = $dimensions->getWidth();
             if ( $width > 0 )
             {
                 $this->xml->video['width'] = $width;
             }
-            $duration = $mov->getDuration();
+            $duration = (float) $format->get("duration");
             if ( $duration > 0 )
             {
                 $this->xml->video['duration'] = $duration;
             }
             $this->xml->video['status'] = self::STATUS_NEEDS_CONVERSION;
-
+            
             if ( !isset( $this->xml->video->source ) )
             {
                 $newSource = $this->xml->video->addChild( 'source' );
@@ -241,39 +241,28 @@ class xrowMedia
             if ( count( $result ) > 0 )
             {
                 $source = $result[0];
-                $source['codecs'] = $mov->getVideoCodec();
+                $source['codecs'] = $stream->get("codec_name");
                 $source['src'] = pathinfo( $filePath, PATHINFO_BASENAME );
                 $source['show'] = 0;
             }
         }
-        else
+        elseif ( self::isAudio( $format ) )
         {
-            eZDebug::writeDebug( 'File is not a video', __METHOD__ );
-        }
-    }
-
-    /**
-     * Add audio meta information
-     * @param ffmpeg_movie $mov
-     * @param string $mimeType
-     * @param string $filePath
-     */
-    public function addAudioInfo( ffmpeg_movie $mov, $mimeType, $filePath )
-    {
-        if ( $mov->hasAudio() )
-        {
+            eZDebug::writeDebug( 'File is a audio', __METHOD__ );
+            $stream = $collection->audios()->first();
+            $format = $probe->format( $filePath );
             if ( !isset( $this->xml->audio ) )
             {
                 $audio = $this->xml->addChild( 'audio' );
             }
-
-            $this->xml->audio['duration'] =  $mov->getDuration();
+            $duration = (float) $format->get("duration");
+            $this->xml->audio['duration'] = $duration;
             $this->xml->audio['status'] = self::STATUS_NEEDS_CONVERSION;
 
             if ( !isset( $this->xml->audio->source ) )
             {
                 $newSource = $this->xml->audio->addChild( 'source' );
-                $newSource['bitrate'] = $mov->getAudioBitRate();
+                $newSource['bitrate'] = $stream->get("bit_rate");
                 $newSource['original'] = 1;
                 $newSource['show'] = 0;
             }
@@ -282,9 +271,9 @@ class xrowMedia
             if ( count( $result ) > 0 )
             {
                 $source = $result[0];
-                $source['codecs'] = $mov->getAudioCodec();
+                $source['codecs'] = $stream->get("codec_name");
                 $source['src'] = pathinfo( $filePath, PATHINFO_BASENAME );
-                $source['bitrate'] = $mov->getAudioBitRate();
+                $source['bitrate'] = $stream->get("bit_rate");
                 $source['show'] = 0;
             }
         }
@@ -490,10 +479,12 @@ class xrowMedia
             $mfilePath = $docRoot . DIRECTORY_SEPARATOR . $filePath;
             $mfilePath = str_replace( array( "/", "\\" ), array( DIRECTORY_SEPARATOR, DIRECTORY_SEPARATOR ), $mfilePath );
         }
-        $mov = @new ffmpeg_movie( $mfilePath, false );
-        if ( $mov instanceof ffmpeg_movie )
-        {
-            $source['codecs'] = $mov->getVideoCodec();
+        $probe = FFMpeg\FFProbe::create();
+        $collection = $probe->streams( $mfilePath );
+        $stream = $collection->first();
+        $format = $probe->format( $filePath );
+        
+            $source['codecs'] = $stream->get("codec_name");
 
             $file = eZClusterFileHandler::instance( $filePath );
             $stat = $file->stat();
@@ -502,12 +493,14 @@ class xrowMedia
             $oFileName = pathinfo( $binary->attribute( 'original_filename' ) );
             $nExt = pathinfo( $source['src'], PATHINFO_EXTENSION );
 
-            $source['originalfilename'] =  pathinfo( self::newFileName( $oFileName, $nExt ), PATHINFO_BASENAME );
+            $source['originalfilename'] = pathinfo( self::newFileName( $oFileName, $nExt ), PATHINFO_BASENAME );
 
             if ( isset( $this->xml->video ) )
             {
-                $source['height'] = $mov->getFrameHeight();
-                $source['width'] = $mov->getFrameWidth();
+                $stream = $collection->videos()->first();
+                $dimensions = $stream->getDimensions();
+                $source['height'] = $dimensions->getHeight();
+                $source['width'] = $dimensions->getWidth();
                 //$source['aratio'] = $this->getAspectRatio( $source['width'], $source['height'] );
                 /**
                  * @TODO: videos with different width / height settings are not possible at the moment
@@ -521,18 +514,13 @@ class xrowMedia
                 {
                     $this->xml->video['width'] = (string) $source['width'];
                 }
-                $duration = $mov->getDuration();
+                $duration = (float) $format->get("duration");
                 if ( $duration > 0 )
                 {
                     $this->xml->video['duration'] = $duration;
                 }
             }
             $this->saveData();
-        }
-        else
-        {
-            eZDebug::writeError( $filePath, 'xrowvideo: filepath not found' );
-        }
     }
     
     function getAspectRatio( $width, $height )
