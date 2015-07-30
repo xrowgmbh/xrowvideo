@@ -140,7 +140,10 @@ body.h5_lb_iframe {
 .h5_lb_fullscreen .h5_lb_controls {
     position: absolute; top: auto; bottom: 0; left: 0; margin: 0; padding: 0 !important;
 }
+/*
 .h5_lb_player:hover .h5_lb_controls {display: inline-block !important;}
+*/
+
 .h5_lb_controls_audio {
     position: relative !important; width:100% !important; margin: auto !important; bottom: auto !important;
     /* Border */
@@ -574,7 +577,7 @@ body.h5_lb_iframe {
 .h5_lb_css_loaded_test {display: none;}
 
 /* for Smartphone Portrait */
-@media only screen and (max-width : 700px) 
+@media only screen and (max-width : 431px) 
 {
     .leanback-player-video .h5_lb_progress_control{
         display:none !important;

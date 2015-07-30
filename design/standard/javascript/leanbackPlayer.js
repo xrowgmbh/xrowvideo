@@ -1280,7 +1280,7 @@ LBP.prototype.initializeDocumentEvents = function() {
 		} else {return LBP.onKeyAction;}
 	};
 	/* do: something if window size changed */
-	this.vars.onresize = function() {if(typeof(LBP) === "undefined") {return;} if(LBP.playerFocused !== null) {var vid = LBP.playerFocused.id; var o = LBP.getPlayer(vid); if(!o.vars.fullscreen) {o.resetControls();} if(LBP.$(vid).focused && o){o.setScreen(o.vars.fullscreen);}}};
+	this.vars.onresize = function() {if(typeof(LBP) === "undefined") {return;} if(LBP.playerFocused !== null) {var vid = LBP.playerFocused.id; var o = LBP.getPlayer(vid); if(!o.vars.fullscreen) {o.resetControls();} o.resetControls(); if(LBP.$(vid).focused && o){o.setScreen(o.vars.fullscreen);}}};
 	/* do: something if window.parent size changed (if player embedded in [CORS] IFrame) */
 	try {
 		(function(p) {
@@ -2049,6 +2049,7 @@ LBP.prototype.setScreen = function(fs, pm, cors, bsXY) {
 		LBP.removeCssClass(b, "h5_lb_fullscreen_fix");
 		/* do: set video in browser-focus */
 		if(LBP.$(vid).focused) {this.setPlayerInFocus(vid);}
+		this.resetControls();
 	}
 	/* do: redraw progress bar and timer */
 	this.drawProgressBar(); this.drawProgressTimer();
