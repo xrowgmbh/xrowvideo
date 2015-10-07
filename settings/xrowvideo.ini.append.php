@@ -86,11 +86,12 @@ Options[]
 Options[]=-ar 44100
 
 [mp4]
-Program=ffmpeg -y -profile:v baseline -i <original_file> <bitrate> <options> -f mp4 <converted_file>
+Program=ffmpeg -y -i <original_file> <bitrate> <options> -profile:v baseline -f mp4 <converted_file>
 # " -movflags faststart" for later
 MimeType=video/mp4
 Options[]
-Options[]=-acodec libvo_aacenc -threads 0
+#Options[]=-acodec libvo_aacenc -threads 0
+Options[]=-strict experimental -c:a aac -threads 0
 
 [webm]
 Program=ffmpeg -y -i <original_file> <bitrate> <options> -f webm <converted_file>
