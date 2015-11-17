@@ -8,5 +8,11 @@ $eZTemplateOperatorArray[] = array(
         'xrowvideo_get_filepath' 
     ) 
 );
-
+$eZTemplateOperatorArray[] = array(
+    'script' => 'extension/xrowvideo/autoloads/xrowvideogetlanguagesoperator.php' ,
+    'class' => 'xrowVideoGetLanguageOperator' ,
+    'operator_names' => array(
+        'get_language'
+    )
+);
 ?>

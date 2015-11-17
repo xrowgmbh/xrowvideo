@@ -10,6 +10,10 @@
      $default_width = 400
      $default_height = 240}
 {if and( $attribute.has_content, is_set( $media.source ), $media.source|count|gt( 0 ) )}
+    {def $track = fetch('content', 'list', hash('parent_node_id', $attribute.object.main_node_id,
+                                                'class_filter_type', 'include',
+                                                'class_filter_array', array('video_track'),
+                                                'limit', 1 ))[0]}
     {if $media_tag|eq( 'video' )}
         {* select the default Video *}
         {def $objects = array()
@@ -117,6 +121,16 @@
                     {def $path_audio = concat( 'xrowvideo/download/', $attribute.contentobject_id, '/', $attribute.id,'/', $attribute.version , '/', $item.src|rawurlencode )|ezurl('no','full')}
                 {/if}
             {/foreach}
+            {foreach $track.object.all_languages as $key => $language}
+                {def $track_item = fetch('content', 'node', hash('node_id', $track.node_id,
+                                                                 'language_code', $language.locale))
+                     $src = concat( 'content/download/', $track_item.data_map.file.contentobject_id, '/', $track_item.data_map.file.id,'/', $track_item.data_map.file.version , '/', $track_item.data_map.file.content.original_filename|rawurlencode )|ezurl('no','full')
+                     $kind = $track_item.data_map.kind.class_content.options[$track_item.data_map.kind.content.0].name
+                     $lang = get_language($track_item.data_map.file.language_code)}
+                <track enabled="true"{if $kind|eq('subtitles')} type="text/vtt"{/if} kind="{$kind}" label="{$track_item.name|wash()}" srclang="{$lang}" src="{$src}"></track>
+                {undef $track_item $src $kind $lang}
+            {/foreach}
+            {undef $track}
             {if and( $media_tag|eq( 'video' ), $fallback_object )}
                 {* Fallback Flash *}
                 {def $path_fallback = concat( 'xrowvideo/download/', $attribute.contentobject_id, '/', $attribute.id, '/', $attribute.version, '/', $fallback_object.src|rawurlencode )|ezurl( 'no', 'full' )}

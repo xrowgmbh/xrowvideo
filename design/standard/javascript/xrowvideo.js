@@ -3,7 +3,11 @@ LBP.options = {
     focusFirstOnInit: false, // focus first (video) player on initialization
     showSources: true, // if switch between available video qualities should be possible
     defaultTimerFormat: "PASSED_HOVER_REMAINING", // default timer format, could be "PASSED_DURATION" (default), "PASSED_REMAINING", "PASSED_HOVER_REMAINING"
+    defaultSubtitleLanguage: 'de',
     defaultLanguage: 'de',
+    showSubtitles: true,
+    initSubtitle: true,
+    subtitles: {show: true, ckbx: true},
     hideControls: false
 };
 
