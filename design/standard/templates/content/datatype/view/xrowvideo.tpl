@@ -127,8 +127,13 @@
                      $src = concat( 'content/download/', $track_item.data_map.file.contentobject_id, '/', $track_item.data_map.file.id,'/', $track_item.data_map.file.version , '/', $track_item.data_map.file.content.original_filename|rawurlencode )|ezurl('no','full')
                      $kind = $track_item.data_map.kind.class_content.options[$track_item.data_map.kind.content.0].name
                      $lang = get_language($track_item.data_map.file.language_code)}
-                <track enabled="true"{if $kind|eq('subtitles')} type="text/vtt"{/if} kind="{$kind}" label="{$track_item.name|wash()}" srclang="{$lang}" src="{$src}"></track>
-                {undef $track_item $src $kind $lang}
+                     {if $track_item.data_map.file.content.original_filename|ends_with(".srt")}
+                        {def $type = "text/x-srt"}
+                     {elseif $track_item.data_map.file.content.original_filename|ends_with(".vtt")}
+                        {def $type = "text/vtt"}
+                     {/if}
+                <track enabled="true"{if is_set($type)} type="{$type}"{/if} kind="{$kind}" label="{$track_item.name|wash()}" srclang="{$lang}" src="{$src}"></track>
+                {undef $track_item $src $kind $lang $type}
             {/foreach}
             {undef $track}
             {if and( $media_tag|eq( 'video' ), $fallback_object )}
