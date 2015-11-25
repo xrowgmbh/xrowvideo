@@ -579,7 +579,7 @@ body.h5_lb_iframe {
 /* for Smartphone Portrait */
 @media only screen and (max-width : 431px) 
 {
-    .leanback-player-video .h5_lb_progress_control{
+    #page .leanback-player-video .h5_lb_progress_control{
         display:none !important;
     }
 }

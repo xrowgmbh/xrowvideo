@@ -6,7 +6,7 @@
 		<meta http-equiv="content-type" content="text/html; charset=utf-8" />
 		
 		<link href="/extension/xrowvideo/design/standard/stylesheets/leanbackPlayer.modified.css" type="text/css" rel="stylesheet">
-		<link href="/extension/xrowvideo/design/standard/stylesheets/leanbackPlayer.default.css" type="text/css" rel="stylesheet">
+		<!--<link href="/extension/xrowvideo/design/standard/stylesheets/leanbackPlayer.default.css" type="text/css" rel="stylesheet">-->
 		<script charset="utf-8" src="/extension/xrowvideo/design/standard/javascript/leanbackPlayer.js" type="text/javascript"></script>
 		<script type="text/javascript" src="/extension/xrowvideo/design/standard/javascript/leanbackPlayer.en.js"></script>
 		<script type="text/javascript" src="/extension/xrowvideo/design/standard/javascript/leanbackPlayer.de.js"></script>
