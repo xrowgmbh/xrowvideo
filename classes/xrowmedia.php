@@ -327,7 +327,7 @@ class xrowMedia
         $array_search[] = '/<options>/';
         $array_search[] = '/<converted_file>/';
         $option = '';
-        
+        $ini = eZINI::instance( 'xrowvideo.ini' );
         foreach( $settings['options'] as $opt )
         {
             if ( trim( $opt ) == "-s" )
@@ -336,7 +336,6 @@ class xrowMedia
                 $optStr = '';
                 if ( isset( $this->xml->video ) )
                 {
-                    $ini = eZINI::instance( 'xrowvideo.ini' );
                     if ( $ini->hasVariable( 'xrowVideoSettings', 'MaxVideoWidth' ) )
                     {
                         $maxWidth = $ini->variable( 'xrowVideoSettings', 'MaxVideoWidth' );
@@ -370,6 +369,10 @@ class xrowMedia
             {
                 $option .= ' ' . $optStr;
             }
+        }
+        if ( $ini->hasVariable('xrowVideoSettings', 'Threads' ) )
+        {
+            $option .= ' -threads ' . $ini->variable( 'xrowVideoSettings', 'Threads' );
         }
         $array_replace = array();
         $array_replace[] = $original_file;

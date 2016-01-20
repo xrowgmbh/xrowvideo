@@ -4,6 +4,8 @@
 Runtimes=html5,gears,flash,silverlight,browserplus
 EnableTrackingwithGA=disabled
 TrackingGAID=1234567-8
+# 0 == AUTO, Number (1-n) == Number of cores to uses
+#Threads=0
 
 # enable and set this time, if your DB timeouts are smaller than 10000
 #WaitingTimeOutTime=100000
@@ -90,8 +92,8 @@ Program=ffmpeg -y -i <original_file> <bitrate> <options> -profile:v baseline -f 
 # " -movflags faststart" for later
 MimeType=video/mp4
 Options[]
-#Options[]=-acodec libvo_aacenc -threads 0
-Options[]=-strict experimental -c:a aac -threads 0
+#Options[]=-acodec libvo_aacenc
+Options[]=-strict experimental -c:a aac
 
 [webm]
 Program=ffmpeg -y -i <original_file> <bitrate> <options> -f webm <converted_file>
