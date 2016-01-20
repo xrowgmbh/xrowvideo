@@ -92,7 +92,7 @@ while( true )
                         {
                             $root = $content['media']->xml->audio;
                             $cSettings = $convertSettings['audio'];
-                            $cli->output( "File is a audio." );
+                            $cli->output( "File is an audio." );
                         }
                         else
                         {
