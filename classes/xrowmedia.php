@@ -370,10 +370,6 @@ class xrowMedia
                 $option .= ' ' . $optStr;
             }
         }
-        if ( $ini->hasVariable('xrowVideoSettings', 'Threads' ) )
-        {
-            $option .= ' -threads ' . $ini->variable( 'xrowVideoSettings', 'Threads' );
-        }
         $array_replace = array();
         $array_replace[] = $original_file;
         $array_replace[] = $bitrate;

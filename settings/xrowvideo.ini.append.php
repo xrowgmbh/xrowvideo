@@ -4,8 +4,6 @@
 Runtimes=html5,gears,flash,silverlight,browserplus
 EnableTrackingwithGA=disabled
 TrackingGAID=1234567-8
-# 0 == AUTO, Number (1-n) == Number of cores to uses
-#Threads=0
 
 # enable and set this time, if your DB timeouts are smaller than 10000
 #WaitingTimeOutTime=100000
@@ -83,7 +81,7 @@ FramesPerSecond=25
 [flv]
 Program=ffmpeg -y -i <original_file> <bitrate> <options> -f flv <converted_file>
 MimeType=video/x-flv
-# override output files
+# -threads does not work here: "[flv @ 0xeb0040] automatic or multi thread number detection not supported by codec"
 Options[]
 Options[]=-ar 44100
 
@@ -92,19 +90,21 @@ Program=ffmpeg -y -i <original_file> <bitrate> <options> -profile:v baseline -f 
 # " -movflags faststart" for later
 MimeType=video/mp4
 Options[]
-#Options[]=-acodec libvo_aacenc
 Options[]=-strict experimental -c:a aac
+Options[]=-threads 0
 
 [webm]
 Program=ffmpeg -y -i <original_file> <bitrate> <options> -f webm <converted_file>
 MimeType=video/webm
 Options[]
+Options[]=-threads 0
 
 [mp3]
 Program=ffmpeg -y -i <original_file> <options> -f mp3 <converted_file>
 MimeType=audio/mp3
 Options[]
 Options[]=-ab 128000 -ar 48000
+Options[]=-threads 0
 
 [oga]
 Program=ffmpeg -y -i <original_file> <options> -f ogg <converted_file>
@@ -112,5 +112,6 @@ MimeType=audio/ogg
 Options[]
 Options[]=-ab 128000 -ar 48000
 Options[]=-vn -acodec libvorbis
+Options[]=-threads 0
 
 */?>
