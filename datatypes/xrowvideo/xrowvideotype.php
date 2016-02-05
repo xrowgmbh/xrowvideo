@@ -154,6 +154,16 @@ class xrowVideoType extends eZBinaryFileType
         {
             $mObj->settings['loop'] = 0;
         }
+
+        if ( $http->hasPostVariable( $base . "_data_media_init_subtitle_" . $contentObjectAttribute->attribute( "id" ) ) )
+        {
+            $mObj->settings['init_sub'] = 1;
+        }
+        else
+        {
+            $mObj->settings['init_sub'] = 0;
+        }
+
         // if there is a pending item take the published version and override this mObj
         $pendingAction = false;
         if( $pendingObj = $mObj->hasPendingAction( true ) )

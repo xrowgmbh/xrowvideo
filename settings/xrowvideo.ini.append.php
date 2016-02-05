@@ -22,6 +22,8 @@ VideoExtensions[]=webm
 VideoExtensions[]=wav
 
 Language=en
+defaultSubtitleLanguage=en
+initSubtitle=false
 
 ConvertVideoFiles[]
 ConvertVideoFiles[]=mp4

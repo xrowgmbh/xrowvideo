@@ -670,5 +670,6 @@ class xrowMedia
                               'loop' => 0,
                               'controls' => 1,
                               'width' => '',
-                              'height' => '' );
+                              'height' => '',
+                              'init_sub' => '' );
 }

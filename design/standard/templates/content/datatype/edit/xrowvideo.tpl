@@ -249,6 +249,12 @@ $(function() {
     <label for="{$attribute_base}_media_{$attribute.id}_loop">{'Loop'|i18n( 'design/standard/content/datatype' )}:</label>
     <input type="checkbox" id="{$attribute_base}_media_{$attribute.id}_loop" name="{$attribute_base}_data_media_is_loop_{$attribute.id}" value="1" {if $content.settings.loop|int}checked="checked"{/if} />
 </div>
+
+<div class="element">
+    <label for="{$attribute_base}_media_{$attribute.id}_init_subtitle">{'Initialize subtitle'|i18n( 'design/standard/content/datatype' )}:</label>
+    <input type="checkbox" id="{$attribute_base}_media_{$attribute.id}_init_subtitle" name="{$attribute_base}_data_media_init_subtitle_{$attribute.id}" value="1" {if $content.settings.init_sub|int}checked="checked"{/if} />
+</div>
+
 {* needed for manual conversion update *}
 
 <div class="element">

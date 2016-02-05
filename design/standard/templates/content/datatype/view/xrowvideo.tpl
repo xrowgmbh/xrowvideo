@@ -101,7 +101,7 @@
     {/if}
     {/run-once}
 
-    <div class="leanback-player-{$media_tag}"{if $media_tag|eq( 'audio' )}{$audio_width}{/if} {if $media_tag|eq( 'video' )}style="width:{$width}px;height:{$height}px;"{/if}>
+    <div data-init_sub="{if and(is_set($attribute.content.settings.init_sub), $attribute.content.settings.init_sub|ne('0'))}{$attribute.content.settings.init_sub}{else}{ezini( 'xrowVideoSettings', 'initSubtitle', 'xrowvideo.ini' )}{/if}" data-def_lang="{if and(is_set($track.object.initial_language_code), is_null($track.object.initial_language_code)|not())}{get_language($track.object.initial_language_code)}{else}{ezini( 'xrowVideoSettings', 'defaultSubtitleLanguage', 'xrowvideo.ini' )}{/if}" class="leanback-player-{$media_tag}"{if $media_tag|eq( 'audio' )}{$audio_width}{/if} {if $media_tag|eq( 'video' )}style="width:{$width}px;height:{$height}px;"{/if}>
         <!--[if gt IE 8]>
         <{$media_tag} {if $media_tag|eq( 'video' )}{$media_attributes}{else}{$control_attributes}{/if}{if $image_url|ne( '' )} poster="{$image_url}"{/if} data-objectid="{$attribute.contentobject_id}">
         <![endif]-->

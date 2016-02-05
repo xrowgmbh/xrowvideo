@@ -15,6 +15,18 @@
 <context>
     <name>design/standard/content/datatype</name>
     <message>
+        <source>Initialize subtitle</source>
+        <translation>Untertitel automatisch anzeigen</translation>
+    </message>
+    <message>
+        <source>none</source>
+        <translation>Keine</translation>
+    </message>
+    <message>
+        <source>Default language</source>
+        <translation>Standardsprache</translation>
+    </message>
+    <message>
         <source>Current file</source>
         <translation>Aktuelle Datei</translation>
     </message>

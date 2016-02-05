@@ -1,12 +1,28 @@
 /* do: set player options */
-LBP.options = {
-    focusFirstOnInit: false, // focus first (video) player on initialization
-    showSources: true, // if switch between available video qualities should be possible
-    defaultTimerFormat: "PASSED_HOVER_REMAINING", // default timer format, could be "PASSED_DURATION" (default), "PASSED_REMAINING", "PASSED_HOVER_REMAINING"
-    defaultLanguage: 'de',
-    hideControls: false,
-    triggerHTML5Events : [ "play", "pause" ],
-};
+
+$(document).ready(function(){
+    var playerVideo = $(".leanback-player-video");
+    var initSubtitle = false;
+    var defaultSubtitleLanguage = 'de';
+    if( playerVideo.is("[data-init_sub]") && playerVideo.data('init_sub') == "1") {
+        initSubtitle = true;
+    }
+    if( playerVideo.is("[data-def_lang]") ) {
+        defaultSubtitleLanguage = playerVideo.data('def_lang');
+    }
+    LBP.options = {
+        focusFirstOnInit: false, // focus first (video) player on initialization
+        showSources: true, // if switch between available video qualities should be possible
+        defaultTimerFormat: "PASSED_HOVER_REMAINING", // default timer format, could be "PASSED_DURATION" (default), "PASSED_REMAINING", "PASSED_HOVER_REMAINING"
+        defaultLanguage: 'de',
+        hideControls: false,
+        triggerHTML5Events : [ "play", "pause" ],
+        defaultSubtitleLanguage: defaultSubtitleLanguage,
+        initSubtitle: initSubtitle,
+        subtitles: {show: true, ckbx: true},
+    };
+});
+
 $(document).ready(function(){
 if( $('input#hiddenleanbacktrackingGAID').length )
 {
