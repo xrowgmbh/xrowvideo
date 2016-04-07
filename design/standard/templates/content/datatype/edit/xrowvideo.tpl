@@ -127,7 +127,7 @@ $(function() {
 
         {/if}{literal}
 
-        chunk_size: '1mb',
+        //TODO Potential PHP Bug with chunking chunk_size: '1mb',
         unique_names: false,
         no_files_with_same_name: true,
         upload_on_publish: true,
