@@ -138,6 +138,7 @@ class xrowMedia
         $obj = new eZPendingActions( $row );
         $obj->store();
     }
+
     private function isAudio( FFMpeg\FFProbe\DataMapping\StreamCollection $collection )
     {
         if ( count( $collection->videos() ) === 0 )
@@ -146,6 +147,7 @@ class xrowMedia
         }
         return false;
     }
+
     /**
      * Update the information of a uploaded media file
      * The local copy needs to be deleted outside
@@ -156,8 +158,6 @@ class xrowMedia
         {
             eZDebug::writeDebug( 'update media info', __METHOD__ );
             $content = $this->attribute->content();
-            $binary = $content['binary'];
-
             if ( isset( $this->xml->video ) )
             {
                 unset( $this->xml->video );
@@ -166,24 +166,31 @@ class xrowMedia
             {
                 unset( $this->xml->audio );
             }
-
-            # new object, get data...
-            $filePath = $binary->filePath();
-            $file = eZClusterFileHandler::instance( $filePath );
-            if ( !file_exists( $filePath ) )
+            $binary = $content['binary'];
+            if ( $binary instanceof eZBinaryFile )
             {
-                $file->fetch();
-            }
+                # new object, get data...
+                $filePath = $binary->filePath();
+                $file = eZClusterFileHandler::instance( $filePath );
+                if ( !file_exists( $filePath ) )
+                {
+                    $file->fetch();
+                }
 
-            if ( $filePath{0} != '/' )
-            {
-                $docRoot = eZSys::rootDir();
-                $filePath = $docRoot . DIRECTORY_SEPARATOR . $filePath;
-                $filePath = str_replace( array( "/", "\\" ), array( DIRECTORY_SEPARATOR, DIRECTORY_SEPARATOR ), $filePath );
+                if ( $filePath{0} != '/' )
+                {
+                    $docRoot = eZSys::rootDir();
+                    $filePath = $docRoot . DIRECTORY_SEPARATOR . $filePath;
+                    $filePath = str_replace( array( "/", "\\" ), array( DIRECTORY_SEPARATOR, DIRECTORY_SEPARATOR ), $filePath );
+                }
+
+                $this->addInfo( $filePath, $binary->attribute( 'mime_type' ) );
+                $file->deleteLocal();
             }
-            
-            $this->addInfo( $filePath, $binary->attribute( 'mime_type' ) );
-            $file->deleteLocal();
+            else
+            {
+                eZDebug::writeError( 'xrowvideo: Object '.$this->attribute->ID . ', version' . $this->attribute->Version.', has no binary file' );
+            }
         }
     }
 
@@ -197,7 +204,6 @@ class xrowMedia
     {
         $probe = FFMpeg\FFProbe::create();
         $collection = $probe->streams( $filePath );
-        
         if ( !self::isAudio( $collection ) )
         {
             eZDebug::writeDebug( 'File is a video', __METHOD__ );
@@ -225,26 +231,6 @@ class xrowMedia
                 $this->xml->video['duration'] = $duration;
             }
             $this->xml->video['status'] = self::STATUS_NEEDS_CONVERSION;
-            
-            if ( !isset( $this->xml->video->source ) )
-            {
-                $newSource = $this->xml->video->addChild( 'source' );
-                $newSource['width'] = $width;
-                $newSource['height'] = $height;
-                $newSource['duration'] = $duration;
-                $newSource['original'] = 1;
-                $newSource['show'] = 0;
-                $newSource['src'] = pathinfo( $filePath, PATHINFO_BASENAME );
-            }
-            // search the original
-            $result = $this->xml->video->xpath( "//source[@original=1]" );
-            if ( count( $result ) > 0 )
-            {
-                $source = $result[0];
-                $source['codecs'] = $stream->get("codec_name");
-                $source['src'] = pathinfo( $filePath, PATHINFO_BASENAME );
-                $source['show'] = 0;
-            }
         }
         elseif ( self::isAudio( $format ) )
         {
@@ -258,24 +244,6 @@ class xrowMedia
             $duration = (float) $format->get("duration");
             $this->xml->audio['duration'] = $duration;
             $this->xml->audio['status'] = self::STATUS_NEEDS_CONVERSION;
-
-            if ( !isset( $this->xml->audio->source ) )
-            {
-                $newSource = $this->xml->audio->addChild( 'source' );
-                $newSource['bitrate'] = $stream->get("bit_rate");
-                $newSource['original'] = 1;
-                $newSource['show'] = 0;
-            }
-
-            $result = $this->xml->audio->xpath( "//source[@original=1]" );
-            if ( count( $result ) > 0 )
-            {
-                $source = $result[0];
-                $source['codecs'] = $stream->get("codec_name");
-                $source['src'] = pathinfo( $filePath, PATHINFO_BASENAME );
-                $source['bitrate'] = $stream->get("bit_rate");
-                $source['show'] = 0;
-            }
         }
     }
 
@@ -462,27 +430,29 @@ class xrowMedia
     {
         $content = $this->attribute->content();
         $binary = $content['binary'];
-        # new object, get data...
-        $dirName = pathinfo( $binary->filePath(), PATHINFO_DIRNAME );
-
-        $docRoot = eZSys::rootDir();
-        $filePath = $dirName . DIRECTORY_SEPARATOR . $source['src'];
-        $file = eZClusterFileHandler::instance(  $binary->filePath() );
-        if ( !file_exists( $binary->filePath() ) )
+        if ( $binary instanceof eZBinaryFile )
         {
-            $file->fetch();
-        }
+            # new object, get data...
+            $dirName = pathinfo( $binary->filePath(), PATHINFO_DIRNAME );
 
-        if ( $filePath{0} != '/' )
-        {
-            $mfilePath = $docRoot . DIRECTORY_SEPARATOR . $filePath;
-            $mfilePath = str_replace( array( "/", "\\" ), array( DIRECTORY_SEPARATOR, DIRECTORY_SEPARATOR ), $mfilePath );
-        }
-        $probe = FFMpeg\FFProbe::create();
-        $collection = $probe->streams( $mfilePath );
-        $stream = $collection->first();
-        $format = $probe->format( $filePath );
-        
+            $docRoot = eZSys::rootDir();
+            $filePath = $dirName . DIRECTORY_SEPARATOR . $source['src'];
+            $file = eZClusterFileHandler::instance(  $binary->filePath() );
+            if ( !file_exists( $binary->filePath() ) )
+            {
+                $file->fetch();
+            }
+
+            if ( $filePath{0} != '/' )
+            {
+                $mfilePath = $docRoot . DIRECTORY_SEPARATOR . $filePath;
+                $mfilePath = str_replace( array( "/", "\\" ), array( DIRECTORY_SEPARATOR, DIRECTORY_SEPARATOR ), $mfilePath );
+            }
+            $probe = FFMpeg\FFProbe::create();
+            $collection = $probe->streams( $mfilePath );
+            $stream = $collection->first();
+            $format = $probe->format( $filePath );
+
             $source['codecs'] = $stream->get("codec_name");
 
             $file = eZClusterFileHandler::instance( $filePath );
@@ -520,8 +490,13 @@ class xrowMedia
                 }
             }
             $this->saveData();
+        }
+        else
+        {
+            eZDebug::writeError( 'xrowvideo: Object '.$this->attribute->ID . ', version' . $this->attribute->Version.', has no binary file' );
+        }
     }
-    
+
     function getAspectRatio( $width, $height )
     {
         $widthOrig = $width;
@@ -589,8 +564,7 @@ class xrowMedia
         {
             $content = $this->attribute->content();
             $binary = $content['binary'];
-
-            if ( $binary )
+            if ( $binary instanceof eZBinaryFile )
             {
                 $dirName = pathinfo( $binary->filePath(), PATHINFO_DIRNAME );
 
@@ -600,7 +574,10 @@ class xrowMedia
                               'mime_type' => (string) $result[0]['mimetype'] );
                 return $res;
             }
-
+            else
+            {
+                eZDebug::writeError( 'xrowvideo: Object '.$this->attribute->ID . ', version' . $this->attribute->Version.', has no binary file' );
+            }
         }
         else
         {
@@ -608,7 +585,7 @@ class xrowMedia
         }
         return false;
     }
-    
+
     static public function updateGivenAttributesDataText( $givenAttributes, $mediaContent, $binary )
     {
         foreach( $givenAttributes as $givenAttribute )

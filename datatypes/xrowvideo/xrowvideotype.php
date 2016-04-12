@@ -36,6 +36,15 @@ class xrowVideoType extends eZBinaryFileType
     function validateObjectAttributeHTTPInput( $http, $base, $contentObjectAttribute )
     {
         eZBinaryFileType::checkFileUploads();
+        $mObj = new xrowMedia( $contentObjectAttribute );
+        $video = $mObj->getXMLData( 'video' );
+        if (count($video) > 0) {
+            if (!isset($video["height"]) || !isset($video["width"]) || (int)$video["height"] == 0 || (int)$video["width"] == 0) {
+                $contentObjectAttribute->setValidationError( ezpI18n::tr( 'kernel/classes/datatypes',
+                    'Width and height values of this video are empty.' ) );
+                return eZInputValidator::STATE_INVALID;
+            }
+        }
         $classAttribute = $contentObjectAttribute->contentClassAttribute();
         $mustUpload = false;
         $httpFileName = $base . "_data_binaryfilename_" . $contentObjectAttribute->attribute( "id" );

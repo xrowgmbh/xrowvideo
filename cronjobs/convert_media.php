@@ -61,6 +61,18 @@ while( true )
             $params = explode( "-", $entry['param'] );
             $attributeID = $params[0];
             $version = $params[1];
+            // Check if there is more than one action for this attribute
+            $checkParamSql = "SELECT param FROM ezpending_actions WHERE action = 'xrow_convert_media' AND param LIKE '".$attributeID."-%' ORDER BY created DESC";
+            $checkParamEntries = $db->arrayQuery( $checkParamSql );
+            if (count($checkParamEntries) > 0) {
+                // Get the newest
+                $latestParamEntry = $checkParamEntries[0];
+                $params = explode( "-", $latestParamEntry['param'] );
+                $attributeID = $params[0];
+                $version = $params[1];
+                // Remove the old
+                $db->query( "DELETE FROM ezpending_actions WHERE action = 'xrow_convert_media' AND param LIKE '".$attributeID."-%' AND param NOT IN ('".$latestParamEntry['param']."')" );
+            }
             $attr = eZContentObjectAttribute::fetch( $attributeID, $version );
             if ( $attr instanceof eZContentObjectAttribute )
             {
@@ -97,8 +109,6 @@ while( true )
                         else
                         {
                             $cli->output( "Unknown file type: $filePath - skipping conversion" );
-                            $content['media']->setStatus( $src, xrowMedia::STATUS_CONVERSION_ERROR );
-                            $content['media']->saveData();
                             eZDebug::writeError( "Unknown file type: $filePath", 'convert media cronjob' );
                             $db->query( "DELETE FROM ezpending_actions WHERE action = 'xrow_convert_media' AND param = '".$entry['param']."'" );
                             continue;
@@ -109,6 +119,16 @@ while( true )
                         if( $mediaType == xrowMedia::TYPE_VIDEO && $ini->variable( 'xrowVideoSettings', 'UseVideoBitrate' ) == 'enabled' )
                         {
                             $originalFileAttributes = $content['media']->getXMLData( 'video', true );
+                            if (!isset($originalFileAttributes['height']) || (int)$originalFileAttributes['height'] == 0 || !isset($originalFileAttributes['width']) || (int)$originalFileAttributes['width'] == 0) {
+                                $this->sendErrorMail( "ERROR during converting video '" . $obj->attribute( 'name' ) . "' (ObjectID " . $obj->attribute('id') . "). Width or height are empty." );
+                                $origFile = $root->xpath( "//source[@original=1]" );
+                                if ( count( $origFile ) > 0 )
+                                {
+                                    $src = $origFile[0];
+                                    $content['media']->setStatus( $src, xrowMedia::STATUS_CONVERSION_ERROR );
+                                }
+                                continue;
+                            }
                             $bitrates = $ini->variable( 'xrowVideoSettings', 'Bitrates' );
                             $convertFile = false;
                             $convertFileOriginal = false;
@@ -351,5 +371,33 @@ function execCommand( $root, $content, $pathParts, $file_suffix, $key, $filePath
         $content['media']->setStatus( $src, xrowMedia::STATUS_CONVERSION_ERROR );
         eZDebug::writeError( "Converted file doesn't exist", 'xrowvideo - convert media' );
         return null;
+    }
+}
+
+function sendErrorMail( $mail_errorstring )
+{
+    $ini = eZINI::instance( 'site.ini' );
+    $xrowvideo_ini = eZINI::instance( 'xrowvideo.ini' );
+    if( $xrowvideo_ini->hasVariable( 'ErrorSettings', 'ReceiverArray' ) && count( $xrowvideo_ini->variable( 'ErrorSettings', 'ReceiverArray' ) ) > 0 )
+    {
+        ezcMailTools::setLineBreak( "\n" );
+        $mail = new ezcMailComposer();
+        $mail->charset = 'utf-8';
+        $mail->from = new ezcMailAddress( $ini->variable( 'MailSettings', 'EmailSender' ), $ini->variable( 'SiteSettings', 'SiteName' ), $mail->charset );
+        $mail->returnPath = $mail->from;
+        $mail->subject = 'xrowvideo error during conversion';
+        $mail->plainText = $mail_errorstring . " mail sent from: " . eZSys::hostname() . "(" . eZSys::serverURL() . ")";
+        $mail->build();
+
+        $receiverArray = $xrowvideo_ini->variable( 'ErrorSettings', 'ReceiverArray' );
+        $transport = new ezcMailMtaTransport();
+        foreach ( $receiverArray as $receiver )
+        {
+            $mail->addTo( new ezcMailAddress( $receiver, '', $mail->charset ) );
+        }
+        if( !$transport->send( $mail ) )
+        {
+            eZDebug::writeError( "Can't send error mail after not moving a node (xrowworkflow).", __METHOD__ );
+        }
     }
 }

@@ -116,4 +116,8 @@ Options[]=-ab 128000 -ar 48000
 Options[]=-vn -acodec libvorbis
 Options[]=-threads 0
 
+#[ErrorSettings]
+#ReceiverArray[]
+#ReceiverArray[]=test@example.com
+
 */?>

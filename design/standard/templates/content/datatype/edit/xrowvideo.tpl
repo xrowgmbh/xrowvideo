@@ -158,28 +158,28 @@ $(function() {
     $("#editform input[type=submit]").each(function(){
         if(($(this).attr('name') + '').indexOf('DiscardButton', 0) === -1 && ($(this).attr('name') + '').indexOf('RelationUploadNew', 0) === -1)
         {
-                $(this).click( function(e){
-                    $('input[type=submit]').attr('disabled', 'disabled');
-//                alert( $(this).attr( 'name' ) );
-                    var myhtml = "<input name='" + $(this).attr( 'name' ) + "' type='hidden' value='1' />";
-                    e.preventDefault();
-                    if (uploader.files.length > 0) {
-                        // When all files are uploaded submit form
-                        uploader.bind('StateChanged', function() {
-                            if (uploader.files.length === (uploader.total.uploaded + uploader.total.failed)) {
-                                $("#editform").append( myhtml );
-                                $("#editform").submit();
-                            }
-                        });
-                        uploader.start();
-                    }
-                    else
-                    {
-                        $("#editform").append( myhtml );
-                        $("#editform").submit();
-                    }
-                    return true;
-                });
+            $(this).click( function(e){
+                $('input[type=submit]').attr('disabled', 'disabled');
+//              alert( $(this).attr( 'name' ) );
+                var myhtml = "<input name='" + $(this).attr( 'name' ) + "' type='hidden' value='1' />";
+                e.preventDefault();
+                if (uploader.files.length > 0) {
+                    // When all files are uploaded submit form
+                    uploader.bind('StateChanged', function() {
+                        if (uploader.files.length === (uploader.total.uploaded + uploader.total.failed)) {
+                            $("#editform").append( myhtml );
+                            $("#editform").submit();
+                        }
+                    });
+                    uploader.start();
+                }
+                else
+                {
+                    $("#editform").append( myhtml );
+                    $("#editform").submit();
+                }
+                return true;
+            });
         }
     });
     
