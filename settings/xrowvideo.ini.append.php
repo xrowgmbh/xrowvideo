@@ -1,7 +1,7 @@
 <?php /* #?ini charset="utf-8"?
 
 [xrowVideoSettings]
-Runtimes=html5
+Runtimes=html5,gears,flash,silverlight,browserplus
 EnableTrackingwithGA=disabled
 TrackingGAID=1234567-8
 
