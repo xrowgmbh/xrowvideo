@@ -90,7 +90,7 @@
 <!-- Load plupload and all it's runtimes and finally the jQuery queue widget -->
 {ezscript_require( array( 'ezjsc::jquery',
                           'ezjsc::jqueryui',
-                          'plupload.full.js',
+                          'plupload.full.min.js',
                           'jquery.plupload.queue/jquery.plupload.queue.js',
                           concat( 'i18n/', $language, '.js' ) ) )}
 
@@ -128,6 +128,7 @@ $(function() {
         {/if}{literal}
 
         chunk_size: '1mb',
+        max_retries: 3,
         unique_names: false,
         no_files_with_same_name: true,
         upload_on_publish: true,
