@@ -127,8 +127,8 @@ $(function() {
 
         {/if}{literal}
 
-        chunk_size: '1mb',
-        max_retries: 3,
+       // chunk_size: '1mb',
+       // max_retries: 3,
         unique_names: false,
         no_files_with_same_name: true,
         upload_on_publish: true,
