@@ -30,7 +30,7 @@
             <th>{'Duration'|i18n( 'design/standard/content/datatype' )}</th>
         </tr>
         <tr>
-            <td><a target="_blank" href={concat( 'xrowvideo/download/', $contentobject_id, '/', $attribute.id,'/', $attribute.version , '/', $content.binary.filename|rawurlencode, '/', $content.binary.original_filename|rawurlencode )|ezurl}>{$content.binary.original_filename}</a></td>
+            <td><a target="_blank" href={concat( 'content/download/', $contentobject_id, '/', $attribute.id,'/', $attribute.version , '/', $content.binary.filename|rawurlencode, '/', $content.binary.original_filename|rawurlencode )|ezurl}>{$content.binary.original_filename}</a></td>
             <td>{$content.binary.mime_type}</td>
             <td>{$content.binary.filesize|si( byte )}</td>
             {if and( $media_tag|eq( 'video' ), is_set( $width ) )}
@@ -56,7 +56,7 @@
             {foreach $media.source as $mitem}
             <tr>
                 <td>
-                    <a target="_blank" href={concat( 'xrowvideo/download/', $contentobject_id, '/', $attribute.id,'/', $attribute.version , '/', $mitem.src|rawurlencode, '/', $mitem.originalfilename|rawurlencode )|ezurl}>{$mitem.originalfilename|wash}</a>
+                    <a target="_blank" href={concat( 'content/download/', $contentobject_id, '/', $attribute.id,'/', $attribute.version , '/', $mitem.src|rawurlencode, '/', $mitem.originalfilename|rawurlencode )|ezurl}>{$mitem.originalfilename|wash}</a>
                 </td>
                 <td>{$mitem.mimetype}</td>
                 <td>{$mitem.filesize|si( byte )}</td>

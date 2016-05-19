@@ -47,6 +47,7 @@ $mime['suffix'] = eZFile::suffix( $fileName );
 $mime2 = explode( '/', $mime['name'] );
 
 $storeName = storeName( $fileName, $mime['suffix'], $mime2[0], $Params['Random'] );
+$storeNameNFS = storeName( $fileName, $mime['suffix'], $mime2[0], $Params['Random'], true );
 // Create target dir
 if ( !file_exists( dirname( $storeName ) ) )
 {
@@ -78,7 +79,7 @@ if ( strpos( $contentType, 'multipart' ) !== false )
     if ( isset( $_FILES['file']['tmp_name'] ) && is_uploaded_file( $_FILES['file']['tmp_name'] ) )
     {
         // Open temp file
-        $out = fopen( $storeName, $chunk == 0 ? 'wb' : 'ab' );
+        $out = fopen( $storeNameNFS, $chunk == 0 ? 'wb' : 'ab' );
         if ( $out )
         {
             // Read binary input stream and append it to temp file
@@ -98,7 +99,7 @@ if ( strpos( $contentType, 'multipart' ) !== false )
             }
             fclose( $out );
             $oldumask = umask( 0 );
-            chmod( $storeName, octdec( eZINI::instance()->variable( 'FileSettings', 'StorageFilePermissions' ) ) );
+            chmod( $storeNameNFS, octdec( eZINI::instance()->variable( 'FileSettings', 'StorageFilePermissions' ) ) );
             umask( $oldumask );
             unlink( $_FILES['file']['tmp_name'] );
         }
@@ -160,6 +161,7 @@ $db = eZDB::instance();
 $db->begin();
 if( isset( $_REQUEST['chunk'] ) and $chunk == $targetchunk )
 {
+    rename($storeNameNFS, $storeName);
     $contentObjectAttributeID = $attribute->attribute( 'id' );
     $version = $attribute->attribute( 'version' );
 
@@ -207,9 +209,14 @@ $db->commit();
 echo '{"jsonrpc" : "2.0", "result" : null, "id" : "'.basename( $storeName ).'"}';
 eZExecution::cleanExit();
 
-function storeName( $Filename = false, $suffix = false, $MimeCategory, $seed )
+function storeName( $Filename = false, $suffix = false, $MimeCategory, $seed, $nfs = false )
 {
     $dir = eZSys::storageDirectory() . '/original/' . $MimeCategory;
+    if($nfs)
+    {
+        $ini = eZINI::instance( 'file.ini' );
+        $dir = $ini->variable( 'eZDFSClusteringSettings', 'MountPointPath' );
+    }
     if ( !file_exists( $dir ) )
     {
         eZDir::mkdir( $dir, false, true );
