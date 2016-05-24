@@ -343,7 +343,8 @@ function execCommand( $root, $content, $pathParts, $file_suffix, $key, $filePath
 
     $cli->output( '# ' . $command );
     $ok = exec( $command );
-
+    DBKeepalive("doctrine.dbal.default_connection");
+    DBKeepalive("doctrine.dbal.cluster_connection");
     # check file and set status
     if ( file_exists( $newFileName ) )
     {
@@ -400,4 +401,15 @@ function sendErrorMail( $mail_errorstring )
             eZDebug::writeError( "Can't send error mail after not moving a node (xrowworkflow).", __METHOD__ );
         }
     }
+}
+
+function DBKeepalive( $connection = "doctrine.dbal.default_connection" ){
+    $container = ezpKernel::instance()->getServiceContainer();
+    $db = $container->get( $connection );
+    if ($db->ping() === false) {
+        $db->close();
+        $db->connect();
+    }
+    $db->query("SET SESSION wait_timeout=86400");
+    $db->query("SET SESSION interactive_timeout=86400");
 }
