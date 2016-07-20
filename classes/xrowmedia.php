@@ -232,7 +232,7 @@ class xrowMedia
             }
             $this->xml->video['status'] = self::STATUS_NEEDS_CONVERSION;
         }
-        elseif ( self::isAudio( $format ) )
+        elseif ( self::isAudio( $collection ) )
         {
             eZDebug::writeDebug( 'File is a audio', __METHOD__ );
             $stream = $collection->audios()->first();
