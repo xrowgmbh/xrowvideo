@@ -145,6 +145,18 @@ class xrowMedia
         {
             return true;
         }
+        else
+        {
+            # MP3 files with an MJPEG image are considered as a video codec, but we want to handle them as audio
+            # See Ticket #9856
+            foreach($collection->videos() as $video)
+            {
+                if ($video->get("codec_name") === "mjpeg")
+                {
+                    return true;
+                }
+            }
+        }
         return false;
     }
 
