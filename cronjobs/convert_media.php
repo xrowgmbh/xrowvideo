@@ -215,21 +215,6 @@ while( true )
                             }
                         }
                         $root['status'] = xrowMedia::STATUS_CONVERSION_FINISHED;
-                        
-                        //Update Video Content - Ticket#9611-Start
-                        if (isset($content['binary']->Filename)) {
-                            $file_name_temp = explode('.',$content['binary']->Filename);
-                            $file_name = $file_name_temp[0];
-                        }
-                        if (isset($content['media']->xml->video)) {
-                            $source_array = (array)$content['media']->xml->video;
-                            foreach($source_array['source'] as $key => $source) {
-                                if(strpos((string)$source->attributes()->src,$file_name) === false) {
-                                    unset($source_array['source'][$key][0]);
-                                }
-                            }
-                        }
-                        // End
                         //die(var_dump($content));
                         $content['media']->saveData();
                         // Update all versioned attribute
