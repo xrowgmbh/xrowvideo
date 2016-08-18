@@ -120,7 +120,8 @@ while( true )
                         {
                             $originalFileAttributes = $content['media']->getXMLData( 'video', true );
                             if (!isset($originalFileAttributes['height']) || (int)$originalFileAttributes['height'] == 0 || !isset($originalFileAttributes['width']) || (int)$originalFileAttributes['width'] == 0) {
-                                $this->sendErrorMail( "ERROR during converting video '" . $obj->attribute( 'name' ) . "' (ObjectID " . $obj->attribute('id') . "). Width or height are empty." );
+                                $cli->output( "ERROR during converting video '" . $obj->attribute( 'name' ) . "' (ObjectID " . $obj->attribute('id') . "). Width or height are empty." );
+                                eZDebug::writeError( "ERROR during converting video '" . $obj->attribute( 'name' ) . "' (ObjectID " . $obj->attribute('id') . "). Width or height are empty." );
                                 $origFile = $root->xpath( "//source[@original=1]" );
                                 if ( count( $origFile ) > 0 )
                                 {
