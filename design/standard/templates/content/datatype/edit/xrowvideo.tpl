@@ -39,6 +39,9 @@
             <td>{$duration|l10n( 'number' )} {'sec.'|i18n( 'design/standard/content/datatype' )}</td>
         </tr>
         </table>
+        {if and( is_set( $media.source ), $media.source|count|gt(0), $attribute.object.data_map.[$attribute.contentclass_attribute_identifier].content.pending)}
+            <p>{'Please discard this draft or upload a new video file. The current version is currently getting encoded.'|i18n( 'design/standard/content/datatype' )}</p>
+        {/if}
     {else}
         <p>{'There is no file.'|i18n( 'design/standard/content/datatype' )}</p>
     {/if}
