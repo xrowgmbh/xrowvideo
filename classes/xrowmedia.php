@@ -615,6 +615,9 @@ class xrowMedia
                         if( (string) $givenAttributeContent['media']->xml->video->source[0]->attributes()->src == $binary->Filename )
                         {
                             $found = true;
+                        } elseif ((string) $givenAttributeContent['binary']->Filename == $binary->Filename)
+                        {
+                            $found = true;
                         }
                     }
                     else
