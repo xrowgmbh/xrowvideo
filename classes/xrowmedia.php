@@ -432,6 +432,49 @@ class xrowMedia
         }
         $this->saveData();
     }
+    
+    /**
+     * Update the Error-Counter of the converted file
+     * @param SimpleXMLElement $source
+     */
+    public function setErrorCounter( SimpleXMLElement $source)
+    {
+        if(isset($source['errorcounter'])) {
+            $count_temp = (integer) $source['errorcounter'];
+            $source['errorcounter'] = (string) ++$count_temp;
+        } else {
+            $source['errorcounter'] = 1;
+        }
+        $this->saveData();
+    }
+    
+    /**
+     * Reset the Error-Counter of the converted file
+     * @param SimpleXMLElement $source
+     */
+    public function resetErrorCounter( SimpleXMLElement $source)
+    {
+        $source['errorcounter'] = 0;
+        $this->saveData();
+    }
+    /**
+     * Limited the Error-Counter to 2
+     * @param SimpleXMLElement $source
+     */
+    public function limitErrorCounter( SimpleXMLElement $source)
+    {
+        $source['errorcounter'] = 2;
+        $this->saveData();
+    }
+    /**
+     * Get the Error-Counter of the converted file
+     * @param SimpleXMLElement $source
+     * @return Value of Error-Counter
+     */
+    public function getErrorCounter( SimpleXMLElement $source)
+    {
+        return $source['errorcounter'];
+    }
 
     /**
      * Update the codec of the converted file

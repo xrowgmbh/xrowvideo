@@ -1,5 +1,6 @@
 <?php
-
+use Symfony\Component\Process\Process;
+use Symfony\Component\Process\Exception\ProcessFailedException;
 // php -d memory_limit=512M runcronjobs.php convertmedia
 
 $cli->output( "Start processing media conversion" );
@@ -76,12 +77,12 @@ while( true )
             $attr = eZContentObjectAttribute::fetch( $attributeID, $version );
             if ( $attr instanceof eZContentObjectAttribute )
             {
+                $content = $attr->content();
                 $obj = $attr->object();
                 // only convert published media files
                 if ( $obj instanceof eZContentObject && $obj->Status == eZContentObject::STATUS_PUBLISHED )
                 {
                     $cli->output( "Converting media of '" . $obj->attribute( 'name' ) . "' with ObjectID #" . $obj->attribute('id') );
-                    $content = $attr->content();
                     $binary = $content['binary'];
                     if ( $binary )
                     {
@@ -128,6 +129,7 @@ while( true )
                                     $src = $origFile[0];
                                     $content['media']->setStatus( $src, xrowMedia::STATUS_CONVERSION_ERROR );
                                 }
+                                $db->query( "DELETE FROM ezpending_actions WHERE action = 'xrow_convert_media' AND param = '".$entry['param']."'" );
                                 continue;
                             }
                             $bitrates = $ini->variable( 'xrowVideoSettings', 'Bitrates' );
@@ -222,40 +224,72 @@ while( true )
                             $file_name_temp = explode('.',$content['binary']->Filename);
                             $file_name = $file_name_temp[0];
                         }
+                        $array_01 = array();
+                        $array_02 = array();
                         if (isset($content['media']->xml->video)) {
                             $source_array = (array)$content['media']->xml->video;
                             foreach($source_array['source'] as $key => $source) {
                                 if(strpos((string)$source->attributes()->src,$file_name) === false) {
-                                    unset($source_array['source'][$key][0]);
+                                    array_push($array_01, $key);
+                                } elseif(strpos((string)$source->attributes()->src,$file_name) !== false) {
+                                    array_push($array_02, (string)$source->attributes()->status);
                                 }
                             }
                         }
-                        // End
-                        //die(var_dump($content));
-                        $content['media']->saveData();
-                        // Update all versioned attribute
-                        $conditions = array( 'id' => $attributeID,
-                                             'version' => array( '!=', $version ) );
-                        $allVersionedAttributesWithTheSameVideo = eZPersistentObject::fetchObjectList( eZContentObjectAttribute::definition(),
-                                                                                                        null,
-                                                                                                        $conditions,
-                                                                                                        null,
-                                                                                                        null,
-                                                                                                        true );
-                        if( count( $allVersionedAttributesWithTheSameVideo ) > 0 )
-                        {
-                            $cli->output( '' );
-                            $cli->output( '--------------------------------------------------------------------------------' );
-                            $cli->output( 'Update all versioned attributes with the same video or where video is not exist.' );
-                            $cli->output( '--------------------------------------------------------------------------------' );
-                            $cli->output( '' );
-                            xrowMedia::updateGivenAttributesDataText( $allVersionedAttributesWithTheSameVideo, $content, $binary );
+                        foreach ($array_02 as $key => $array_02_temp) {
+                            if ($array_02_temp === "3") {
+                                unset($array_02[$key]);
+                            }
                         }
-                        $file->deleteLocal();
+                        if (count($array_02) != 0) {
+                            foreach ($array_01 as $key) {
+                                unset($source_array['source'][$key][0]);
+                            }
+                            $content['media']->saveData();
+                            // Update all versioned attribute
+                            $conditions = array( 'id' => $attributeID,
+                                                 'version' => array( '!=', $version ) );
+                            $allVersionedAttributesWithTheSameVideo = eZPersistentObject::fetchObjectList( eZContentObjectAttribute::definition(),
+                                                                                                            null,
+                                                                                                            $conditions,
+                                                                                                            null,
+                                                                                                            null,
+                                                                                                            true );
+                            if( count( $allVersionedAttributesWithTheSameVideo ) > 0 )
+                            {
+                                $cli->output( '' );
+                                $cli->output( '--------------------------------------------------------------------------------' );
+                                $cli->output( 'Update all versioned attributes with the same video or where video is not exist.' );
+                                $cli->output( '--------------------------------------------------------------------------------' );
+                                $cli->output( '' );
+                                xrowMedia::updateGivenAttributesDataText( $allVersionedAttributesWithTheSameVideo, $content, $binary );
+                            }
+                            $file->deleteLocal();
+                        }
                     }
                 }
                 // clear view cache
                 eZContentCacheManager::clearObjectViewCacheIfNeeded( $obj->ID );
+                
+                //checks that a fault occurs
+                $sources_count = 0;
+                $error_root =  $content['media']->xml->video;
+                $sources = $error_root->xpath( "//source" );
+                $original_file_name_temp = explode(".",$content['binary']->Filename);
+                $original_file_name = $original_file_name_temp[0];
+                foreach ($sources as $source_temp) {
+                    $test_file_name = (string)$source_temp[0]['src'];
+                    $pos = strpos($test_file_name, $original_file_name);
+                    if ($pos !== false) {
+                        ++$sources_count;
+                    }
+                }
+                
+                $source_error = $error_root->xpath( "//source[@errorcounter=2]" );
+                if ($sources_count === count($source_error)) {
+                    sendConvertErrorMail( "ERROR during converting video '" . $content['binary']->OriginalFilename . "' (ObjectID " . $content['media']->attribute->ContentObjectID . "). Unable to convert video file.", $content['media']->attribute->ContentObjectID);
+                    $db->query( "DELETE FROM ezpending_actions WHERE action = 'xrow_convert_media' AND param = '".$entry['param']."'" );
+                }
             }
 
             ++$offset;
@@ -358,7 +392,20 @@ function execCommand( $root, $content, $pathParts, $file_suffix, $key, $filePath
                                                     $bitrate );
 
     $cli->output( '# ' . $command );
-    $ok = exec( $command );
+    
+    $process = new Process($command);
+    $process->run();
+    if (!$process->isSuccessful()) {
+        $content['media']->setErrorCounter( $src );
+        $error_counter = (integer) $content['media']->getErrorCounter( $src );
+        if ($error_counter > 2) {
+            $content['media']->limitErrorCounter( $src );
+        }
+        $cli->output($process->getErrorOutput());
+    } else {
+        $content['media']->resetErrorCounter( $src );
+    }
+    
     DBKeepalive("doctrine.dbal.default_connection");
     DBKeepalive("doctrine.dbal.cluster_connection");
     # check file and set status
@@ -391,31 +438,34 @@ function execCommand( $root, $content, $pathParts, $file_suffix, $key, $filePath
     }
 }
 
-function sendErrorMail( $mail_errorstring )
+function sendConvertErrorMail( $mail_errorstring ,$object_id)
 {
     $ini = eZINI::instance( 'site.ini' );
-    $xrowvideo_ini = eZINI::instance( 'xrowvideo.ini' );
-    if( $xrowvideo_ini->hasVariable( 'ErrorSettings', 'ReceiverArray' ) && count( $xrowvideo_ini->variable( 'ErrorSettings', 'ReceiverArray' ) ) > 0 )
+    $object = eZContentObject::fetch($object_id);
+    $owner_user_id = $object->OwnerID;
+    $current_user = eZUser::fetch($owner_user_id);
+    if ( is_object( $current_user ) ) {
+        $receiver = $current_user->attribute( 'email' );
+    } else {
+        $receiver ='';
+    }
+    echo "Receiver : ". $receiver . "\n";
+    ezcMailTools::setLineBreak( "\n" );
+    $mail = new ezcMailComposer();
+    $mail->charset = 'utf-8';
+    $mail->from = new ezcMailAddress( $ini->variable( 'MailSettings', 'EmailSender' ), $ini->variable( 'SiteSettings', 'SiteName' ), $mail->charset );
+    $mail->returnPath = $mail->from;
+    $mail->subject = 'xrowvideo error during conversion';
+    $mail->plainText = $mail_errorstring . " mail sent from: " . eZSys::hostname();
+    $mail->build();
+    $transport = new ezcMailMtaTransport();
+    if ( $receiver != '' )
     {
-        ezcMailTools::setLineBreak( "\n" );
-        $mail = new ezcMailComposer();
-        $mail->charset = 'utf-8';
-        $mail->from = new ezcMailAddress( $ini->variable( 'MailSettings', 'EmailSender' ), $ini->variable( 'SiteSettings', 'SiteName' ), $mail->charset );
-        $mail->returnPath = $mail->from;
-        $mail->subject = 'xrowvideo error during conversion';
-        $mail->plainText = $mail_errorstring . " mail sent from: " . eZSys::hostname() . "(" . eZSys::serverURL() . ")";
-        $mail->build();
-
-        $receiverArray = $xrowvideo_ini->variable( 'ErrorSettings', 'ReceiverArray' );
-        $transport = new ezcMailMtaTransport();
-        foreach ( $receiverArray as $receiver )
-        {
-            $mail->addTo( new ezcMailAddress( $receiver, '', $mail->charset ) );
-        }
-        if( !$transport->send( $mail ) )
-        {
-            eZDebug::writeError( "Can't send error mail after not moving a node (xrowworkflow).", __METHOD__ );
-        }
+        $mail->addTo( new ezcMailAddress( $receiver, '', $mail->charset ) );
+    }
+    if( !$transport->send( $mail ) )
+    {
+        eZDebug::writeError( "Can't send error mail.", __METHOD__ );
     }
 }
 
