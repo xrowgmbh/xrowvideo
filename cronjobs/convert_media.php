@@ -394,6 +394,7 @@ function execCommand( $root, $content, $pathParts, $file_suffix, $key, $filePath
     $cli->output( '# ' . $command );
     
     $process = new Process($command);
+    $process->setTimeout(604800);
     $process->run();
     if (!$process->isSuccessful()) {
         $content['media']->setErrorCounter( $src );
