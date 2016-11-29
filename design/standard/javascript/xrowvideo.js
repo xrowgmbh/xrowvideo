@@ -39,14 +39,6 @@ $(document).ready(function(){
            $('.download-info').css("cursor","hand");
     });
     
-    $('.flash-version').bind('click', function()
-    {
-          $('.leanback-player-video').remove();
-          $('.extra-flash-video').css("display","block");
-          $('.flash-version').remove();
-          $('.separator-video').remove();
-    });
-    
     var bro=$.browser;
     var binfo="";
     if(navigator.appVersion.indexOf("MSIE") !== -1) {binfo="Microsoft Internet Explorer";}

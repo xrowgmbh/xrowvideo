@@ -27,12 +27,9 @@ initSubtitle=false
 
 ConvertVideoFiles[]
 ConvertVideoFiles[]=mp4
-ConvertVideoFiles[]=webm
-ConvertVideoFiles[]=flv
 
 ConvertAudioFiles[]
 ConvertAudioFiles[]=mp3
-ConvertAudioFiles[]=oga
 
 MaxVideoWidth=1920
 
@@ -80,13 +77,6 @@ VideoBitrate=560K
 AudioBitrate=80K
 FramesPerSecond=25
 
-[flv]
-Program=ffmpeg -y -i <original_file> <bitrate> <options> -f flv <converted_file>
-MimeType=video/x-flv
-# -threads does not work here: "[flv @ 0xeb0040] automatic or multi thread number detection not supported by codec"
-Options[]
-Options[]=-ar 44100
-
 [mp4]
 Program=ffmpeg -y -i <original_file> <bitrate> <options> -profile:v baseline -f mp4 <converted_file>
 # " -movflags faststart" for later
@@ -95,25 +85,11 @@ Options[]
 Options[]=-strict experimental -c:a aac
 Options[]=-threads 0
 
-[webm]
-Program=ffmpeg -y -i <original_file> <bitrate> <options> -f webm <converted_file>
-MimeType=video/webm
-Options[]
-Options[]=-threads 0
-
 [mp3]
 Program=ffmpeg -y -i <original_file> <options> -f mp3 <converted_file>
 MimeType=audio/mp3
 Options[]
 Options[]=-ab 128000 -ar 48000
-Options[]=-threads 0
-
-[oga]
-Program=ffmpeg -y -i <original_file> <options> -f ogg <converted_file>
-MimeType=audio/ogg
-Options[]
-Options[]=-ab 128000 -ar 48000
-Options[]=-vn -acodec libvorbis
 Options[]=-threads 0
 
 #[ErrorSettings]
