@@ -226,14 +226,23 @@ while( true )
                         }
                         $array_01 = array();
                         $array_02 = array();
+                        $source_menge = array();
                         if (isset($content['media']->xml->video)) {
                             $source_array = (array)$content['media']->xml->video;
-                            foreach($source_array['source'] as $key => $source) {
-                                if(strpos((string)$source->attributes()->src,$file_name) === false) {
-                                    array_push($array_01, $key);
-                                } elseif(strpos((string)$source->attributes()->src,$file_name) !== false) {
-                                    array_push($array_02, (string)$source->attributes()->status);
-                                }
+                        } elseif (isset($content['media']->xml->audio)) {
+                            $source_array = (array)$content['media']->xml->audio;
+                        }
+                        
+                        if (is_array($source_array["source"])) {
+                            $source_menge = $source_array["source"];
+                        }else {
+                            $source_menge = array($source_array["source"]);
+                        }
+                        foreach($source_menge as $key => $source) {
+                            if(strpos((string)$source->attributes()->src,$file_name) === false) {
+                                array_push($array_01, $key);
+                            } elseif(strpos((string)$source->attributes()->src,$file_name) !== false) {
+                                array_push($array_02, (string)$source->attributes()->status);
                             }
                         }
                         foreach ($array_02 as $key => $array_02_temp) {
@@ -243,7 +252,7 @@ while( true )
                         }
                         if (count($array_02) != 0) {
                             foreach ($array_01 as $key) {
-                                unset($source_array['source'][$key][0]);
+                                unset($source_menge[$key][0]);
                             }
                             $content['media']->saveData();
                             // Update all versioned attribute
@@ -273,8 +282,15 @@ while( true )
                 
                 //checks that a fault occurs
                 $sources_count = 0;
-                $error_root =  $content['media']->xml->video;
+                if( isset($content['media']->xml->video) ) {
+                    $error_root =  $content['media']->xml->video;
+                } elseif ( $content['media']->xml->audio ) {
+                    $error_root =  $content['media']->xml->audio;
+                }
                 $sources = $error_root->xpath( "//source" );
+                if (! is_array($sources)) {
+                    $sources = array($sources);
+                }
                 $original_file_name_temp = explode(".",$content['binary']->Filename);
                 $original_file_name = $original_file_name_temp[0];
                 foreach ($sources as $source_temp) {
@@ -287,7 +303,7 @@ while( true )
                 
                 $source_error = $error_root->xpath( "//source[@errorcounter=2]" );
                 if ($sources_count === count($source_error)) {
-                    sendConvertErrorMail( "ERROR during converting video '" . $content['binary']->OriginalFilename . "' (ObjectID " . $content['media']->attribute->ContentObjectID . "). Unable to convert video file.", $content['media']->attribute->ContentObjectID);
+                    sendConvertErrorMail( "ERROR during converting file '" . $content['binary']->OriginalFilename . "' (ObjectID " . $content['media']->attribute->ContentObjectID . "). Unable to convert file.", $content['media']->attribute->ContentObjectID);
                     $db->query( "DELETE FROM ezpending_actions WHERE action = 'xrow_convert_media' AND param = '".$entry['param']."'" );
                 }
             }

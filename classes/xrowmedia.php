@@ -647,45 +647,90 @@ class xrowMedia
         {
             $givenAttributeContent = $givenAttribute->content();
             $found = false;
-            $givenAttributeContent['media']->xml->video->attributes()->status = self::STATUS_CONVERSION_FINISHED;
-            if( isset( $givenAttributeContent['media']->xml->video->source ) )
+            if ( isset( $givenAttributeContent['media']->xml->video) )
             {
-                if( isset( $givenAttributeContent['media']->xml->video->source[0] ) )
+                $givenAttributeContent['media']->xml->video->attributes()->status = self::STATUS_CONVERSION_FINISHED;
+                if( isset( $givenAttributeContent['media']->xml->video->source ) )
                 {
-                    if( isset( $givenAttributeContent['media']->xml->video->source[0]->attributes()->src ) && 
-                        isset( $givenAttributeContent['media']->xml->video->source[0]->attributes()->src[0] ) )
+                    if( isset( $givenAttributeContent['media']->xml->video->source[0] ) )
                     {
-                        if( (string) $givenAttributeContent['media']->xml->video->source[0]->attributes()->src == $binary->Filename )
+                        if( isset( $givenAttributeContent['media']->xml->video->source[0]->attributes()->src ) && 
+                            isset( $givenAttributeContent['media']->xml->video->source[0]->attributes()->src[0] ) )
                         {
-                            $found = true;
-                        } elseif ((string) $givenAttributeContent['binary']->Filename == $binary->Filename)
+                            if( (string) $givenAttributeContent['media']->xml->video->source[0]->attributes()->src == $binary->Filename )
+                            {
+                                $found = true;
+                            } elseif ((string) $givenAttributeContent['binary']->Filename == $binary->Filename)
+                            {
+                                $found = true;
+                            }
+                        }
+                        else
                         {
                             $found = true;
                         }
                     }
-                    else
-                    {
-                        $found = true;
-                    }
+                    // check if the video is exist and has the same name or video is not exist
+                    unset( $givenAttributeContent['media']->xml->video->source );
                 }
-                // check if the video is exist and has the same name or video is not exist
-                unset( $givenAttributeContent['media']->xml->video->source );
-            }
-            else
-            {
-                $found = true;
-            }
-            if( $found )
-            {
-                foreach( $mediaContent['media']->xml->video->source as $item )
+                else
                 {
-                    $xml = $givenAttributeContent['media']->xml->video->addChild( $item->getName() );
-                    foreach( $item->attributes() as $name => $value )
-                    {
-                        $xml->addAttribute( $name, $value );
-                    }
+                    $found = true;
                 }
-                $givenAttributeContent['media']->saveData();
+                if( $found )
+                {
+                    foreach( $mediaContent['media']->xml->video->source as $item )
+                    {
+                        $xml = $givenAttributeContent['media']->xml->video->addChild( $item->getName() );
+                        foreach( $item->attributes() as $name => $value )
+                        {
+                            $xml->addAttribute( $name, $value );
+                        }
+                    }
+                    $givenAttributeContent['media']->saveData();
+                }
+            } elseif ( isset( $givenAttributeContent['media']->xml->audio) )
+            {
+                $givenAttributeContent['media']->xml->audio->attributes()->status = self::STATUS_CONVERSION_FINISHED;
+                if( isset( $givenAttributeContent['media']->xml->audio->source ) )
+                {
+                    if( isset( $givenAttributeContent['media']->xml->audio->source[0] ) )
+                    {
+                        if( isset( $givenAttributeContent['media']->xml->audio->source[0]->attributes()->src ) && 
+                            isset( $givenAttributeContent['media']->xml->audio->source[0]->attributes()->src[0] ) )
+                        {
+                            if( (string) $givenAttributeContent['media']->xml->audio->source[0]->attributes()->src == $binary->Filename )
+                            {
+                                $found = true;
+                            } elseif ((string) $givenAttributeContent['binary']->Filename == $binary->Filename)
+                            {
+                                $found = true;
+                            }
+                        }
+                        else
+                        {
+                            $found = true;
+                        }
+                    }
+                    // check if the video is exist and has the same name or video is not exist
+                    unset( $givenAttributeContent['media']->xml->audio->source );
+                }
+                else
+                {
+                    $found = true;
+                }
+                if( $found )
+                {
+                    foreach( $mediaContent['media']->xml->audio->source as $item )
+                    {
+                        $xml = $givenAttributeContent['media']->xml->audio->addChild( $item->getName() );
+                        foreach( $item->attributes() as $name => $value )
+                        {
+                            $xml->addAttribute( $name, $value );
+                        }
+                    }
+                    $givenAttributeContent['media']->saveData();
+                }
             }
         }
     }
