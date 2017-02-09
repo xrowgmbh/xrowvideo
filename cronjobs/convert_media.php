@@ -454,7 +454,15 @@ function execCommand( $root, $content, $pathParts, $file_suffix, $key, $filePath
         return null;
     }
 }
-
+/*
+      To use Swift Mailer, you'll need to configure it for your mail server.
+      # ezpublish/config/config.yml
+        swiftmailer:
+            transport: '%mailer_transport%'
+            host:      '%mailer_host%'
+            username:  '%mailer_user%'
+            password:  '%mailer_password%'
+*/
 function sendConvertErrorMail( $mail_errorstring ,$object_id)
 {
     $ini = eZINI::instance( 'site.ini' );
@@ -467,22 +475,17 @@ function sendConvertErrorMail( $mail_errorstring ,$object_id)
         $receiver ='';
     }
     echo "Receiver : ". $receiver . "\n";
-    ezcMailTools::setLineBreak( "\n" );
-    $mail = new ezcMailComposer();
-    $mail->charset = 'utf-8';
-    $mail->from = new ezcMailAddress( $ini->variable( 'MailSettings', 'EmailSender' ), $ini->variable( 'SiteSettings', 'SiteName' ), $mail->charset );
-    $mail->returnPath = $mail->from;
-    $mail->subject = 'xrowvideo error during conversion';
-    $mail->plainText = $mail_errorstring . " mail sent from: " . eZSys::hostname();
-    $mail->build();
-    $transport = new ezcMailMtaTransport();
-    if ( $receiver != '' )
-    {
-        $mail->addTo( new ezcMailAddress( $receiver, '', $mail->charset ) );
-    }
-    if( !$transport->send( $mail ) )
-    {
-        eZDebug::writeError( "Can't send error mail.", __METHOD__ );
+    if($receiver !== '') {
+        $plainText = $mail_errorstring . " mail sent from: " . eZSys::hostname();
+        $container = ezpKernel::instance()->getServiceContainer();
+        $message = \Swift_Message::newInstance()
+            ->setSubject( 'xrowvideo error during conversion' )
+            ->setFrom( $ini->variable( 'MailSettings', 'EmailSender' ) )
+            ->setTo( $receiver )
+            ->setBody( $plainText );
+        $container->get('mailer')->send($message);
+    } else {
+        $cli->output( "Error Message: The recipient address is empty." );
     }
 }
 
