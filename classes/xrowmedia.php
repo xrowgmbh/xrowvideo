@@ -489,8 +489,13 @@ class xrowMedia
         {
             # new object, get data...
             $dirName = pathinfo( $binary->filePath(), PATHINFO_DIRNAME );
-
-            $docRoot = eZSys::rootDir();
+            $ini_nfs = eZINI::instance( 'file.ini' );
+            if ( $ini_nfs->hasVariable( 'eZDFSClusteringSettings', 'MountPointPath' ) ) {
+                $docRoot = $ini_nfs->variable( 'eZDFSClusteringSettings', 'MountPointPath' );
+            } else {
+                $docRoot = eZSys::rootDir();
+            }
+            
             $filePath = $dirName . DIRECTORY_SEPARATOR . $source['src'];
             $file = eZClusterFileHandler::instance(  $binary->filePath() );
             if ( !file_exists( $binary->filePath() ) )
@@ -506,7 +511,7 @@ class xrowMedia
             $probe = FFMpeg\FFProbe::create();
             $collection = $probe->streams( $mfilePath );
             $stream = $collection->first();
-            $format = $probe->format( $filePath );
+            $format = $probe->format( $mfilePath );
 
             $source['codecs'] = $stream->get("codec_name");
 
