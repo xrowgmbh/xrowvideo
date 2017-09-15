@@ -46,8 +46,16 @@ $mime = eZMimeType::findByURL( $fileName );
 $mime['suffix'] = eZFile::suffix( $fileName );
 $mime2 = explode( '/', $mime['name'] );
 
+$fileIni = eZINI::instance( 'file.ini' );
+$fileHandler = $fileIni->variable( 'ClusteringSettings', 'FileHandler' );
+if($fileHandler == "eZDFSFileHandler")
+{
+    $nfs = true;
+} else {
+    $nfs = false;
+}
 $storeName = storeName( $fileName, $mime['suffix'], $mime2[0], $Params['Random'] );
-$storeNameNFS = storeName( $fileName, $mime['suffix'], $mime2[0], $Params['Random'], true );
+$storeNameNFS = storeName( $fileName, $mime['suffix'], $mime2[0], $Params['Random'], $nfs );
 // Create target dir
 if ( !file_exists( dirname( $storeName ) ) )
 {
