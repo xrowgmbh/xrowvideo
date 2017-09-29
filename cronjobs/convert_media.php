@@ -502,7 +502,6 @@ function DBKeepalive( $connection = "doctrine.dbal.default_connection" ){
     $db->close();
     $db->connect();
     #set variables for pretending 'mysql server has gone away'
-    $db->query("SET GLOBAL max_allowed_packet = 167772160;");
     $db->query("SET SESSION wait_timeout=86400;");
     $db->query("SET SESSION interactive_timeout=86400;");
 }
