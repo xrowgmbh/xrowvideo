@@ -423,8 +423,14 @@ function execCommand( $root, $content, $pathParts, $file_suffix, $key, $filePath
         $content['media']->resetErrorCounter( $src );
     }
     
+    $container = ezpKernel::instance()->getServiceContainer();
     DBKeepalive("doctrine.dbal.default_connection");
-    DBKeepalive("doctrine.dbal.cluster_connection");
+    #system might not use cluster
+    if($container-> has('doctrine.dbal.cluster_connection'))
+    {
+        DBKeepalive("doctrine.dbal.cluster_connection");
+    }
+    
     # check file and set status
     if ( file_exists( $newFileName ) )
     {
@@ -434,6 +440,7 @@ function execCommand( $root, $content, $pathParts, $file_suffix, $key, $filePath
             $convertedFile = eZClusterFileHandler::instance( $newFileName );
             $mime = eZMimeType::findByURL( $newFileName );
             $convertedFile->fileStore( $newFileName, 'binaryfile', false, $mime['name'] );
+
             $content['media']->setStatus( $src, xrowMedia::STATUS_CONVERSION_FINISHED );
             $content['media']->updateFileInfo( $src );
             $convertedFile->deleteLocal();
@@ -492,10 +499,10 @@ function sendConvertErrorMail( $mail_errorstring ,$object_id)
 function DBKeepalive( $connection = "doctrine.dbal.default_connection" ){
     $container = ezpKernel::instance()->getServiceContainer();
     $db = $container->get( $connection );
-    if ($db->ping() === false) {
-        $db->close();
-        $db->connect();
-    }
-    $db->query("SET SESSION wait_timeout=86400");
-    $db->query("SET SESSION interactive_timeout=86400");
+    $db->close();
+    $db->connect();
+    #set variables for pretending 'mysql server has gone away'
+    $db->query("SET GLOBAL max_allowed_packet = 167772160;");
+    $db->query("SET SESSION wait_timeout=86400;");
+    $db->query("SET SESSION interactive_timeout=86400;");
 }

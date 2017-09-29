@@ -490,8 +490,8 @@ class xrowMedia
             # new object, get data...
             $dirName = pathinfo( $binary->filePath(), PATHINFO_DIRNAME );
             $ini_nfs = eZINI::instance( 'file.ini' );
-            if ( $ini_nfs->hasVariable( 'eZDFSClusteringSettings', 'MountPointPath' ) ) {
-                $docRoot = $ini_nfs->variable( 'eZDFSClusteringSettings', 'MountPointPath' );
+            if ( $ini_nfs->hasVariable( 'eZDFSClusteringSettings', 'MountPointPath' ) 
+                and $ini_nfs->variable( 'eZDFSClusteringSettings', 'MountPointPath') != "") {
             } else {
                 $docRoot = eZSys::rootDir();
             }
@@ -502,7 +502,7 @@ class xrowMedia
             {
                 $file->fetch();
             }
-
+            
             if ( $filePath{0} != '/' )
             {
                 $mfilePath = $docRoot . DIRECTORY_SEPARATOR . $filePath;
