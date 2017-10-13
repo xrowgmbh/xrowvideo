@@ -492,6 +492,7 @@ class xrowMedia
             $ini_nfs = eZINI::instance( 'file.ini' );
             if ( $ini_nfs->hasVariable( 'eZDFSClusteringSettings', 'MountPointPath' ) 
                 and $ini_nfs->variable( 'eZDFSClusteringSettings', 'MountPointPath') != "") {
+            $docRoot = $ini_nfs->variable( 'eZDFSClusteringSettings', 'MountPointPath' );
             } else {
                 $docRoot = eZSys::rootDir();
             }
