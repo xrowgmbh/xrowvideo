@@ -139,22 +139,23 @@ class xrowMedia
         $obj->store();
     }
 
-    private function isAudio( FFMpeg\FFProbe\DataMapping\StreamCollection $collection )
+    private function isAudio( FFMpeg\FFProbe\DataMapping\StreamCollection $collection, $mimeType )
     {
+        // It's an audio file if there are no video streams
         if ( count( $collection->videos() ) === 0 )
         {
             return true;
         }
         else
         {
-            # MP3 files with an MJPEG image are considered as a video codec, but we want to handle them as audio
-            # See Ticket #9856
-            foreach($collection->videos() as $video)
-            {
-                if ($video->get("codec_name") === "mjpeg")
-                {
-                    return true;
-                }
+            /*
+             * An audio file can have a video stream and an audio stream.
+             * For example MP3 and MJPEG if you got an MP3 file that has a cover image.
+             * In this case we rely on the MIME-type reported by eZ e.g. "audio/mpeg".
+             */
+            $type = strtolower(explode("/", $mimeType)[0]);
+            if ($type === "audio") {
+                return true;
             }
         }
         return false;
@@ -216,7 +217,7 @@ class xrowMedia
     {
         $probe = FFMpeg\FFProbe::create();
         $collection = $probe->streams( $filePath );
-        if ( !self::isAudio( $collection ) )
+        if ( !self::isAudio( $collection, $mimeType ) )
         {
             eZDebug::writeDebug( 'File is a video', __METHOD__ );
             $stream = $collection->videos()->first();
@@ -244,7 +245,7 @@ class xrowMedia
             }
             $this->xml->video['status'] = self::STATUS_NEEDS_CONVERSION;
         }
-        elseif ( self::isAudio( $collection ) )
+        elseif ( self::isAudio( $collection, $mimeType ) )
         {
             eZDebug::writeDebug( 'File is a audio', __METHOD__ );
             $stream = $collection->audios()->first();
