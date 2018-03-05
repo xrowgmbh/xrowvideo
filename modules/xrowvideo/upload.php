@@ -47,6 +47,7 @@ $mime['suffix'] = eZFile::suffix( $fileName );
 $mime2 = explode( '/', $mime['name'] );
 
 $fileIni = eZINI::instance( 'file.ini' );
+$xrowvideoIni = eZINI::instance( 'xrowvideo.ini' );
 $fileHandler = $fileIni->variable( 'ClusteringSettings', 'FileHandler' );
 if($fileHandler == "eZDFSFileHandler")
 {
@@ -165,11 +166,17 @@ else
 }
 $targetchunk = $chunks -1;
 
-$db = eZDB::instance();
-$db->begin();
-if( isset( $_REQUEST['chunk'] ) and $chunk == $targetchunk )
-{
+$closure = function () use ($storeName, $storeNameNFS, $fileName, $attribute, $mime) {
+    $db = eZDB::instance();
+    $db->begin();
+    $rootDir = getcwd();
+    if (is_dir("ezpublish_legacy")) {
+        chdir("ezpublish_legacy");
+    }
+
+    echo "xrowvideo: Moving $storeNameNFS to $storeName\n";
     rename($storeNameNFS, $storeName);
+
     $contentObjectAttributeID = $attribute->attribute( 'id' );
     $version = $attribute->attribute( 'version' );
 
@@ -180,39 +187,32 @@ if( isset( $_REQUEST['chunk'] ) and $chunk == $targetchunk )
     $binary->store();
 
     $fileHandler = eZClusterFileHandler::instance();
+    echo "xrowvideo: $storeName starting fileStore()\n";
     $fileHandler->fileStore( $storeName, 'binaryfile', false, $mime['name'] );
+
+    $fileHandler->deleteLocal();
+    chdir($rootDir);
 
     $mObj = new xrowMedia( $attribute );
     $mObj->updateMediaInfo();
     $mObj->addPendingAction();
     $attribute->setAttribute( 'data_text', $mObj->xml->saveXML() );
     $attribute->store();
-    $fileHandler->deleteLocal();
+    $db->commit();
+    echo "xrowvideo: Done\n";
+};
+
+if( (isset( $_REQUEST['chunk'] ) && $chunk == $targetchunk) || !isset( $_REQUEST['chunk'])) {
+    if ( $xrowvideoIni->hasVariable( 'xrowVideoSettings', 'AsyncFileTransfer' ) && $xrowvideoIni->variable('xrowVideoSettings', 'AsyncFileTransfer') === 'enabled' ) {
+        $container = ezpKernel::instance()->getServiceContainer();
+        $mq = $container->get("xrow_mq");
+        $mq->async($closure);
+    } else {
+        $closure();
+    }
     eZLog::write( gmdate( 'D, d M Y H:i:s', time() ) . " ObjectID #" . $obj->ID . " completed", "xrowvideo.log");
 }
-elseif( !isset( $_REQUEST['chunk'] ) )
-{
-    $contentObjectAttributeID = $attribute->attribute( 'id' );
-    $version = $attribute->attribute( 'version' );
 
-    $binary = eZBinaryFile::create( $contentObjectAttributeID, $version );
-    $binary->setAttribute( 'filename', basename( $storeName ) );
-    $binary->setAttribute( 'original_filename', $fileName );
-    $binary->setAttribute( 'mime_type', $mime['name'] );
-    $binary->store();
-
-    $fileHandler = eZClusterFileHandler::instance();
-    $fileHandler->fileStore( $storeName, 'binaryfile', false, $mime['name'] );
-
-    $mObj = new xrowMedia( $attribute );
-    $mObj->updateMediaInfo();
-    $mObj->addPendingAction();
-    $attribute->setAttribute( 'data_text', $mObj->xml->saveXML() );
-    $attribute->store();
-    $fileHandler->deleteLocal();
-    eZLog::write( gmdate( 'D, d M Y H:i:s', time() ) . " ObjectID #" . $obj->ID . " completed", "xrowvideo.log");
-}
-$db->commit();
 // Return JSON-RPC response
 echo '{"jsonrpc" : "2.0", "result" : null, "id" : "'.basename( $storeName ).'"}';
 eZExecution::cleanExit();
