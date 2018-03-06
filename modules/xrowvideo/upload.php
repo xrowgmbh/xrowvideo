@@ -10,8 +10,8 @@ if ( !$attribute )
 $obj = $attribute->attribute( 'object' );
 
 if ( !$obj OR
-     $obj->attribute( 'status' ) == eZContentObject::STATUS_ARCHIVED OR
-     !$obj->canEdit( false, false, false, $Params['Language'] ) )
+    $obj->attribute( 'status' ) == eZContentObject::STATUS_ARCHIVED OR
+    !$obj->canEdit( false, false, false, $Params['Language'] ) )
 {
     return $Module->handleError( eZError::KERNEL_NOT_AVAILABLE, 'kernel' );
 }
@@ -85,6 +85,7 @@ if( $logging && isset( $_REQUEST['chunk'] ) )
 }
 if ( strpos( $contentType, 'multipart' ) !== false )
 {
+    // Upload via chunking
     if ( isset( $_FILES['file']['tmp_name'] ) && is_uploaded_file( $_FILES['file']['tmp_name'] ) )
     {
         // Open temp file
@@ -126,6 +127,7 @@ if ( strpos( $contentType, 'multipart' ) !== false )
 }
 else
 {
+    // Upload via streaming
     set_time_limit(0);
     $mem = $attribute->attribute( 'contentclass_attribute' )->DataInt1 * 2;// twice the max upload size
     ini_set('memory_limit', $mem.'M');
@@ -166,15 +168,24 @@ else
 }
 $targetchunk = $chunks -1;
 
-$closure = function () use ($storeName, $storeNameNFS, $fileName, $attribute, $mime) {
+/*
+ * This closure stores the file on the filesystem and database.
+ * The call to fileStore() may take several minutes to complete with files larger than 1GB,
+ * probably due to the fact that it transfers the file in 1MB chunks instead of simply moving it over.
+ * Thus exceeding most HTTP and database timeouts, e.g. wait_timeout.
+ *
+ * Therefore a asynchronous transfer was implemented further down using this $closure.
+ */
+$closure = function ($log = true) use ($storeName, $storeNameNFS, $fileName, $attribute, $mime) {
     $db = eZDB::instance();
     $db->begin();
+
+    // If running eZ 5.4 we might have to move to the legacy root
     $rootDir = getcwd();
     if (is_dir("ezpublish_legacy")) {
         chdir("ezpublish_legacy");
     }
 
-    echo "xrowvideo: Moving $storeNameNFS to $storeName\n";
     rename($storeNameNFS, $storeName);
 
     $contentObjectAttributeID = $attribute->attribute( 'id' );
@@ -187,9 +198,7 @@ $closure = function () use ($storeName, $storeNameNFS, $fileName, $attribute, $m
     $binary->store();
 
     $fileHandler = eZClusterFileHandler::instance();
-    echo "xrowvideo: $storeName starting fileStore()\n";
     $fileHandler->fileStore( $storeName, 'binaryfile', false, $mime['name'] );
-
     $fileHandler->deleteLocal();
     chdir($rootDir);
 
@@ -199,11 +208,13 @@ $closure = function () use ($storeName, $storeNameNFS, $fileName, $attribute, $m
     $attribute->setAttribute( 'data_text', $mObj->xml->saveXML() );
     $attribute->store();
     $db->commit();
-    echo "xrowvideo: Done\n";
 };
 
+// Store the received file if its the last chunk or if the data was send via streaming
 if( (isset( $_REQUEST['chunk'] ) && $chunk == $targetchunk) || !isset( $_REQUEST['chunk'])) {
+    // If AsyncFileTransfer is enabled perform the file processing asynchronous to prevent timeouts, otherwise just execute it
     if ( $xrowvideoIni->hasVariable( 'xrowVideoSettings', 'AsyncFileTransfer' ) && $xrowvideoIni->variable('xrowVideoSettings', 'AsyncFileTransfer') === 'enabled' ) {
+        // AsyncFileTransfer requires xrow mq-bundle installed and at least eZ 5.4
         $container = ezpKernel::instance()->getServiceContainer();
         $mq = $container->get("xrow_mq");
         $mq->async($closure);
