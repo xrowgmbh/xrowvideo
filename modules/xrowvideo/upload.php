@@ -189,6 +189,17 @@ $closure = function () use ($storeName, $storeNameNFS, $fileName, $attribute, $m
         $db = eZDB::instance();
         $db->begin();
 
+        /*
+         * Create the var/storage/original/video directory.
+         * The directories will get deleted by xrowMedia->updateMediaInfo()
+         *                                       \_ eZDFSFileHandler->deleteLocal()
+         *                                            \_ eZClusterFileHandler::cleanupEmptyDirectories()
+         * if the local file was the only file inside that directory tree.
+         */
+        if (!file_exists(dirname($storeName))) {
+            mkdir(dirname($storeName), 0777, true);
+        }
+
         rename($storeNameNFS, $storeName);
 
         $contentObjectAttributeID = $attribute->attribute( 'id' );
@@ -203,7 +214,6 @@ $closure = function () use ($storeName, $storeNameNFS, $fileName, $attribute, $m
         $fileHandler = eZClusterFileHandler::instance();
         // fileStore() is slow with large files
         $fileHandler->fileStore( $storeName, 'binaryfile', false, $mime['name'] );
-        $fileHandler->deleteLocal();
 
         $mObj = new xrowMedia( $attribute );
         $mObj->updateMediaInfo();
