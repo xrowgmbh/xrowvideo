@@ -49,6 +49,11 @@ $mime2 = explode( '/', $mime['name'] );
 $fileIni = eZINI::instance( 'file.ini' );
 $xrowvideoIni = eZINI::instance( 'xrowvideo.ini' );
 $fileHandler = $fileIni->variable( 'ClusteringSettings', 'FileHandler' );
+$async = false;
+if ( $xrowvideoIni->hasVariable( 'xrowVideoSettings', 'AsyncFileTransfer' ) && $xrowvideoIni->variable('xrowVideoSettings', 'AsyncFileTransfer') === 'enabled' ) {
+    $async = true;
+}
+
 if($fileHandler == "eZDFSFileHandler")
 {
     $nfs = true;
@@ -168,15 +173,21 @@ else
 }
 $targetchunk = $chunks -1;
 
-/*
- * This closure stores the file on the filesystem and database.
+/** @var \closure $closure
+ *
+ * Stores the file on the filesystem and database.
  * The call to fileStore() may take several minutes to complete with files larger than 1GB,
  * probably due to the fact that it transfers the file in 1MB chunks instead of simply moving it over.
  * Thus exceeding most HTTP and database timeouts, e.g. wait_timeout.
  *
  * Therefore a asynchronous transfer was implemented further down using this $closure.
  */
-$closure = function () use ($storeName, $storeNameNFS, $fileName, $attribute, $mime) {
+$closure = function () use ($storeName, $storeNameNFS, $fileName, $attribute, $mime, $async) {
+    // Only "log" when it's run asynchronous to avoid output in HTTP responses
+    if ($async) {
+        echo "xrowvideo: Saving $fileName (ContentObjectID = " . $attribute->ContentObjectID . ")\n";
+    }
+
     // Declare the $kernel as global to get the symfony kernel from the global scope
     global $kernel;
     $container = $kernel->getContainer();
@@ -222,12 +233,15 @@ $closure = function () use ($storeName, $storeNameNFS, $fileName, $attribute, $m
         $attribute->store();
         $db->commit();
     });
+    if ($async) {
+        echo "xrowvideo: Saved $fileName (ContentObjectID = " . $attribute->ContentObjectID . ")\n";
+    }
 };
 
 // Store the received file if its the last chunk or if the data was send via streaming
 if( (isset( $_REQUEST['chunk'] ) && $chunk == $targetchunk) || !isset( $_REQUEST['chunk'])) {
     // If AsyncFileTransfer is enabled perform the file processing asynchronous to prevent timeouts, otherwise just execute it
-    if ( $xrowvideoIni->hasVariable( 'xrowVideoSettings', 'AsyncFileTransfer' ) && $xrowvideoIni->variable('xrowVideoSettings', 'AsyncFileTransfer') === 'enabled' ) {
+    if ($async) {
         // AsyncFileTransfer requires xrow mq-bundle installed and at least eZ 5.4
         $container = ezpKernel::instance()->getServiceContainer();
         $mq = $container->get("xrow_mq");
