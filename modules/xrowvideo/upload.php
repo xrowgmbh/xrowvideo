@@ -176,38 +176,42 @@ $targetchunk = $chunks -1;
  *
  * Therefore a asynchronous transfer was implemented further down using this $closure.
  */
-$closure = function ($log = true) use ($storeName, $storeNameNFS, $fileName, $attribute, $mime) {
-    $db = eZDB::instance();
-    $db->begin();
+$closure = function () use ($storeName, $storeNameNFS, $fileName, $attribute, $mime) {
+    // Declare the $kernel as global to get the symfony kernel from the global scope
+    global $kernel;
+    $container = $kernel->getContainer();
+    $legacyKernelClosure = $container->get('ezpublish_legacy.kernel');
+    // Execute the legacy kernel closure to get the actual legacy kernel object
+    $legacyKernel = $legacyKernelClosure();
 
-    // If running eZ 5.4 we might have to move to the legacy root
-    $rootDir = getcwd();
-    if (is_dir("ezpublish_legacy")) {
-        chdir("ezpublish_legacy");
-    }
+    // Run callback in legacy context, important to get the correct working directory e.g. ezpublish_legacy
+    $legacyKernel->runCallback(function() use ($storeName, $storeNameNFS, $fileName, $attribute, $mime) {
+        $db = eZDB::instance();
+        $db->begin();
 
-    rename($storeNameNFS, $storeName);
+        rename($storeNameNFS, $storeName);
 
-    $contentObjectAttributeID = $attribute->attribute( 'id' );
-    $version = $attribute->attribute( 'version' );
+        $contentObjectAttributeID = $attribute->attribute( 'id' );
+        $version = $attribute->attribute( 'version' );
 
-    $binary = eZBinaryFile::create( $contentObjectAttributeID, $version );
-    $binary->setAttribute( 'filename', basename( $storeName ) );
-    $binary->setAttribute( 'original_filename', $fileName );
-    $binary->setAttribute( 'mime_type', $mime['name'] );
-    $binary->store();
+        $binary = eZBinaryFile::create( $contentObjectAttributeID, $version );
+        $binary->setAttribute( 'filename', basename( $storeName ) );
+        $binary->setAttribute( 'original_filename', $fileName );
+        $binary->setAttribute( 'mime_type', $mime['name'] );
+        $binary->store();
 
-    $fileHandler = eZClusterFileHandler::instance();
-    $fileHandler->fileStore( $storeName, 'binaryfile', false, $mime['name'] );
-    $fileHandler->deleteLocal();
-    chdir($rootDir);
+        $fileHandler = eZClusterFileHandler::instance();
+        // fileStore() is slow with large files
+        $fileHandler->fileStore( $storeName, 'binaryfile', false, $mime['name'] );
+        $fileHandler->deleteLocal();
 
-    $mObj = new xrowMedia( $attribute );
-    $mObj->updateMediaInfo();
-    $mObj->addPendingAction();
-    $attribute->setAttribute( 'data_text', $mObj->xml->saveXML() );
-    $attribute->store();
-    $db->commit();
+        $mObj = new xrowMedia( $attribute );
+        $mObj->updateMediaInfo();
+        $mObj->addPendingAction();
+        $attribute->setAttribute( 'data_text', $mObj->xml->saveXML() );
+        $attribute->store();
+        $db->commit();
+    });
 };
 
 // Store the received file if its the last chunk or if the data was send via streaming
