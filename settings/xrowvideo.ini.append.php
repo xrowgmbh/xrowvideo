@@ -4,6 +4,7 @@
 Runtimes=html5
 EnableTrackingwithGA=disabled
 TrackingGAID=1234567-8
+AsyncFileTransfer=disabled
 
 # enable and set this time, if your DB timeouts are smaller than 10000
 #WaitingTimeOutTime=100000

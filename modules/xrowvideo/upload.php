@@ -10,8 +10,8 @@ if ( !$attribute )
 $obj = $attribute->attribute( 'object' );
 
 if ( !$obj OR
-     $obj->attribute( 'status' ) == eZContentObject::STATUS_ARCHIVED OR
-     !$obj->canEdit( false, false, false, $Params['Language'] ) )
+    $obj->attribute( 'status' ) == eZContentObject::STATUS_ARCHIVED OR
+    !$obj->canEdit( false, false, false, $Params['Language'] ) )
 {
     return $Module->handleError( eZError::KERNEL_NOT_AVAILABLE, 'kernel' );
 }
@@ -47,7 +47,13 @@ $mime['suffix'] = eZFile::suffix( $fileName );
 $mime2 = explode( '/', $mime['name'] );
 
 $fileIni = eZINI::instance( 'file.ini' );
+$xrowvideoIni = eZINI::instance( 'xrowvideo.ini' );
 $fileHandler = $fileIni->variable( 'ClusteringSettings', 'FileHandler' );
+$async = false;
+if ( $xrowvideoIni->hasVariable( 'xrowVideoSettings', 'AsyncFileTransfer' ) && $xrowvideoIni->variable('xrowVideoSettings', 'AsyncFileTransfer') === 'enabled' ) {
+    $async = true;
+}
+
 if($fileHandler == "eZDFSFileHandler")
 {
     $nfs = true;
@@ -84,6 +90,7 @@ if( $logging && isset( $_REQUEST['chunk'] ) )
 }
 if ( strpos( $contentType, 'multipart' ) !== false )
 {
+    // Upload via chunking
     if ( isset( $_FILES['file']['tmp_name'] ) && is_uploaded_file( $_FILES['file']['tmp_name'] ) )
     {
         // Open temp file
@@ -125,6 +132,7 @@ if ( strpos( $contentType, 'multipart' ) !== false )
 }
 else
 {
+    // Upload via streaming
     set_time_limit(0);
     $mem = $attribute->attribute( 'contentclass_attribute' )->DataInt1 * 2;// twice the max upload size
     ini_set('memory_limit', $mem.'M');
@@ -165,54 +173,85 @@ else
 }
 $targetchunk = $chunks -1;
 
-$db = eZDB::instance();
-$db->begin();
-if( isset( $_REQUEST['chunk'] ) and $chunk == $targetchunk )
-{
-    rename($storeNameNFS, $storeName);
-    $contentObjectAttributeID = $attribute->attribute( 'id' );
-    $version = $attribute->attribute( 'version' );
+/** @var \closure $closure
+ *
+ * Stores the file on the filesystem and database.
+ * The call to fileStore() may take several minutes to complete with files larger than 1GB,
+ * probably due to the fact that it transfers the file in 1MB chunks instead of simply moving it over.
+ * Thus exceeding most HTTP and database timeouts, e.g. wait_timeout.
+ *
+ * Therefore a asynchronous transfer was implemented further down using this $closure.
+ */
+$closure = function () use ($storeName, $storeNameNFS, $fileName, $attribute, $mime, $async) {
+    // Only "log" when it's run asynchronous to avoid output in HTTP responses
+    if ($async) {
+        echo "xrowvideo: Saving $fileName (ContentObjectID = " . $attribute->ContentObjectID . ")\n";
+    }
 
-    $binary = eZBinaryFile::create( $contentObjectAttributeID, $version );
-    $binary->setAttribute( 'filename', basename( $storeName ) );
-    $binary->setAttribute( 'original_filename', $fileName );
-    $binary->setAttribute( 'mime_type', $mime['name'] );
-    $binary->store();
+    // Declare the $kernel as global to get the symfony kernel from the global scope
+    global $kernel;
+    $container = $kernel->getContainer();
+    $legacyKernelClosure = $container->get('ezpublish_legacy.kernel');
+    // Execute the legacy kernel closure to get the actual legacy kernel object
+    $legacyKernel = $legacyKernelClosure();
 
-    $fileHandler = eZClusterFileHandler::instance();
-    $fileHandler->fileStore( $storeName, 'binaryfile', false, $mime['name'] );
+    // Run callback in legacy context, important to get the correct working directory e.g. ezpublish_legacy
+    $legacyKernel->runCallback(function() use ($storeName, $storeNameNFS, $fileName, $attribute, $mime) {
+        $db = eZDB::instance();
+        $db->begin();
 
-    $mObj = new xrowMedia( $attribute );
-    $mObj->updateMediaInfo();
-    $mObj->addPendingAction();
-    $attribute->setAttribute( 'data_text', $mObj->xml->saveXML() );
-    $attribute->store();
-    $fileHandler->deleteLocal();
+        /*
+         * Create the var/storage/original/video directory.
+         * The directories will get deleted by xrowMedia->updateMediaInfo()
+         *                                       \_ eZDFSFileHandler->deleteLocal()
+         *                                            \_ eZClusterFileHandler::cleanupEmptyDirectories()
+         * if the local file was the only file inside that directory tree.
+         */
+        if (!file_exists(dirname($storeName))) {
+            mkdir(dirname($storeName), 0777, true);
+        }
+
+        rename($storeNameNFS, $storeName);
+
+        $contentObjectAttributeID = $attribute->attribute( 'id' );
+        $version = $attribute->attribute( 'version' );
+
+        $binary = eZBinaryFile::create( $contentObjectAttributeID, $version );
+        $binary->setAttribute( 'filename', basename( $storeName ) );
+        $binary->setAttribute( 'original_filename', $fileName );
+        $binary->setAttribute( 'mime_type', $mime['name'] );
+        $binary->store();
+
+        $fileHandler = eZClusterFileHandler::instance();
+        // fileStore() is slow with large files
+        $fileHandler->fileStore( $storeName, 'binaryfile', false, $mime['name'] );
+
+        $mObj = new xrowMedia( $attribute );
+        $mObj->updateMediaInfo();
+        $mObj->addPendingAction();
+        $attribute->setAttribute( 'data_text', $mObj->xml->saveXML() );
+        $attribute->store();
+        $db->commit();
+    });
+    if ($async) {
+        echo "xrowvideo: Saved $fileName (ContentObjectID = " . $attribute->ContentObjectID . ")\n";
+    }
+};
+
+// Store the received file if its the last chunk or if the data was send via streaming
+if( (isset( $_REQUEST['chunk'] ) && $chunk == $targetchunk) || !isset( $_REQUEST['chunk'])) {
+    // If AsyncFileTransfer is enabled perform the file processing asynchronous to prevent timeouts, otherwise just execute it
+    if ($async) {
+        // AsyncFileTransfer requires xrow mq-bundle installed and at least eZ 5.4
+        $container = ezpKernel::instance()->getServiceContainer();
+        $mq = $container->get("xrow_mq");
+        $mq->async($closure);
+    } else {
+        $closure();
+    }
     eZLog::write( gmdate( 'D, d M Y H:i:s', time() ) . " ObjectID #" . $obj->ID . " completed", "xrowvideo.log");
 }
-elseif( !isset( $_REQUEST['chunk'] ) )
-{
-    $contentObjectAttributeID = $attribute->attribute( 'id' );
-    $version = $attribute->attribute( 'version' );
 
-    $binary = eZBinaryFile::create( $contentObjectAttributeID, $version );
-    $binary->setAttribute( 'filename', basename( $storeName ) );
-    $binary->setAttribute( 'original_filename', $fileName );
-    $binary->setAttribute( 'mime_type', $mime['name'] );
-    $binary->store();
-
-    $fileHandler = eZClusterFileHandler::instance();
-    $fileHandler->fileStore( $storeName, 'binaryfile', false, $mime['name'] );
-
-    $mObj = new xrowMedia( $attribute );
-    $mObj->updateMediaInfo();
-    $mObj->addPendingAction();
-    $attribute->setAttribute( 'data_text', $mObj->xml->saveXML() );
-    $attribute->store();
-    $fileHandler->deleteLocal();
-    eZLog::write( gmdate( 'D, d M Y H:i:s', time() ) . " ObjectID #" . $obj->ID . " completed", "xrowvideo.log");
-}
-$db->commit();
 // Return JSON-RPC response
 echo '{"jsonrpc" : "2.0", "result" : null, "id" : "'.basename( $storeName ).'"}';
 eZExecution::cleanExit();
