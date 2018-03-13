@@ -54,6 +54,7 @@ if ( $xrowvideoIni->hasVariable( 'xrowVideoSettings', 'AsyncFileTransfer' ) && $
     $async = true;
 }
 
+
 if($fileHandler == "eZDFSFileHandler")
 {
     $nfs = true;
@@ -205,22 +206,13 @@ $closure = function () use ($storeName, $storeNameNFS, $fileName, $attribute, $m
          * The directories will get deleted by xrowMedia->updateMediaInfo()
          *                                       \_ eZDFSFileHandler->deleteLocal()
          *                                            \_ eZClusterFileHandler::cleanupEmptyDirectories()
-         * if the local file was the only file inside that directory tree.
+         * if local file was the only file inside that directory tree.
          */
         if (!file_exists(dirname($storeName))) {
             mkdir(dirname($storeName), 0777, true);
         }
 
         rename($storeNameNFS, $storeName);
-
-        $contentObjectAttributeID = $attribute->attribute( 'id' );
-        $version = $attribute->attribute( 'version' );
-
-        $binary = eZBinaryFile::create( $contentObjectAttributeID, $version );
-        $binary->setAttribute( 'filename', basename( $storeName ) );
-        $binary->setAttribute( 'original_filename', $fileName );
-        $binary->setAttribute( 'mime_type', $mime['name'] );
-        $binary->store();
 
         $fileHandler = eZClusterFileHandler::instance();
         // fileStore() is slow with large files
@@ -240,6 +232,18 @@ $closure = function () use ($storeName, $storeNameNFS, $fileName, $attribute, $m
 
 // Store the received file if its the last chunk or if the data was send via streaming
 if( (isset( $_REQUEST['chunk'] ) && $chunk == $targetchunk) || !isset( $_REQUEST['chunk'])) {
+    $db = eZDB::instance();
+    $db->begin();
+    $contentObjectAttributeID = $attribute->attribute( 'id' );
+    $version = $attribute->attribute( 'version' );
+
+    $binary = eZBinaryFile::create( $contentObjectAttributeID, $version );
+    $binary->setAttribute( 'filename', basename( $storeName ) );
+    $binary->setAttribute( 'original_filename', $fileName );
+    $binary->setAttribute( 'mime_type', $mime['name'] );
+    $binary->store();
+    $db->commit();
+
     // If AsyncFileTransfer is enabled perform the file processing asynchronous to prevent timeouts, otherwise just execute it
     if ($async) {
         // AsyncFileTransfer requires xrow mq-bundle installed and at least eZ 5.4
@@ -249,6 +253,7 @@ if( (isset( $_REQUEST['chunk'] ) && $chunk == $targetchunk) || !isset( $_REQUEST
     } else {
         $closure();
     }
+    
     eZLog::write( gmdate( 'D, d M Y H:i:s', time() ) . " ObjectID #" . $obj->ID . " completed", "xrowvideo.log");
 }
 
