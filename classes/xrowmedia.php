@@ -243,7 +243,7 @@ class xrowMedia
             {
                 $this->xml->video['duration'] = $duration;
             }
-            $this->xml->video['originalNameNFS'] = basename($filePath);
+            $this->xml->video['original_name'] = basename($filePath);
             $this->xml->video['status'] = self::STATUS_NEEDS_CONVERSION;
         }
         elseif ( self::isAudio( $collection, $mimeType ) )
