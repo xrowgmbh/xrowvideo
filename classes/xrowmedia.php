@@ -198,7 +198,6 @@ class xrowMedia
                 }
 
                 $this->addInfo( $filePath, $binary->attribute( 'mime_type' ) );
-                $file->deleteLocal();
             }
             else
             {
