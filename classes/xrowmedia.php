@@ -196,8 +196,8 @@ class xrowMedia
                     $filePath = $docRoot . DIRECTORY_SEPARATOR . $filePath;
                     $filePath = str_replace( array( "/", "\\" ), array( DIRECTORY_SEPARATOR, DIRECTORY_SEPARATOR ), $filePath );
                 }
-
                 $this->addInfo( $filePath, $binary->attribute( 'mime_type' ) );
+                $file->deleteLocal();
             }
             else
             {
