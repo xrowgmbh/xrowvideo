@@ -35,7 +35,7 @@
 	Info_title: "Показать информацию",
 	Info_menu_about: "Информация",
 	Info_menu_shortcuts: "Горячие клавиши",
-	Info_content_default_player: "<span style=\"font-weight: bold;\"><a href=\"$0\" onclick=\"window.open(this.href); return false;\">LeanBack Player<\/a><\/span>: Версия $1",
+	Info_content_default_player: "<span style=\"font-weight: bold;\">LeanBack Player<\/span>: Версия $1",
 	Info_content_default_exts: "<br\/><br\/><span style=\"font-weight: bold;\">Активные расширения<\/span> ",
 	Info_content_version: "Версия $0",
 	Info_content_exts_url_visit: "Посетить сайт разработчика",

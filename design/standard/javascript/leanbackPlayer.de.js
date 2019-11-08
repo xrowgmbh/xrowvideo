@@ -35,7 +35,7 @@
 	Info_title: "LeanBack Player Informationen anzeigen",
 	Info_menu_about: "Über",
 	Info_menu_shortcuts: "Shortcuts",
-	Info_content_default_player: "<span style=\"font-weight: bold;\"><a href=\"$0\" onclick=\"window.open(this.href); return false;\">LeanBack Player<\/a><\/span>: Version $1",
+	Info_content_default_player: "<span style=\"font-weight: bold;\">LeanBack Player<\/span>: Version $1",
 	Info_content_default_exts: "<br\/><br\/><span style=\"font-weight: bold;\">aktivierte Erweiterung(en)<\/span> ",
 	Info_content_version: "Version $0",
 	Info_content_exts_url_visit: "Entwicklerseite besuchen",

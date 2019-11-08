@@ -35,7 +35,7 @@
 	Info_title: "Toon LeanBack Player informatie",
 	Info_menu_about: "Over",
 	Info_menu_shortcuts: "Snelkoppelingen",
-	Info_content_default_player: "<span style=\"font-weight: bold;\"><a href=\"$0\" onclick=\"window.open(this.href); return false;\">LeanBack Player<\/a><\/span>: Versie $1",
+	Info_content_default_player: "<span style=\"font-weight: bold;\">LeanBack Player<\/span>: Versie $1",
 	Info_content_default_exts: "<br\/><br\/><span style=\"font-weight: bold;\">actieve uitbreiding(en)<\/span>",
 	Info_content_version: "Versie $0",
 	Info_content_exts_url_visit: "bezoek de ontwikkelaar website",
